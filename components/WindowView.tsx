@@ -19,7 +19,7 @@ const EVENT: Record<string, string> = {
   handoff: "次の窓口へ引き継いだ",
   withdrawn: "本人が取り下げた",
 };
-// 引き継ぎ先の例。行政だけでなく、医療・学校・支援団体にも使える（いずれも例であり、提携はない）
+// 引き継ぎ先の例。行政だけでなく、医療・学校・支援団体にも使える（いずれも例であり、現時点では提携はない）
 const NEXT = [
   "子ども家庭支援センター（行政の例）",
   "福祉事務所（行政の例）",
@@ -126,7 +126,7 @@ export default function WindowView({ token }: { token: string }) {
             本人の画面ではありません。
           </p>
           <p className="mt-2">
-            デモ版です。窓口名は「窓口A」か「窓口B」。パスワードは提出資料に書いてあります。実在の機関との提携はありません。
+            デモ版です。窓口名は「窓口A」か「窓口B」。パスワードは提出資料に書いてあります。現時点では、実在の機関との提携や連携はありません。
           </p>
         </div>
         <label className="mt-5 block text-base">
@@ -231,7 +231,7 @@ export default function WindowView({ token }: { token: string }) {
         </button>
       </div>
       <p className="mt-2 text-sm text-[#5b4a33]">
-        ※ 窓口名は例です。実在の窓口との提携や連携は、ありません。
+        ※ 窓口名は例です。現時点では、実在の窓口との提携や連携はありません。
       </p>
 
       <h2 className="mt-8 text-lg font-medium">経過の記録</h2>
