@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Engawa（縁側）― 困りごとの「お薬手帳」
 
-## Getting Started
+困りごとが、**本人の言葉のまま、確認され、記録され、次の窓口に引き継がれる**ための手帳です。
+Zenn 第5回 Agentic AI Hackathon with Google Cloud 向けに、期間中に新規に作成しています。
 
-First, run the development server:
+## 解くこと／解かないこと
+- 解く：窓口が変わるたびに、同じ話を一から説明し直す手間を、減らす。
+- 解かない：人手不足そのもの、法的な争い、診断・治療。窓口が受け取るかどうかは、窓口しだい（提携や連携は、ありません）。
 
+## 仕組み（実装済みの範囲）
+1. **本人が書く**（文字／音声の文字起こし。音声は保存しない）。
+2. **AI（Gemini）が、次に聞く質問を1つ選ぶ。** 候補は「本人の発言からの引用」か「固定の選択肢」だけ。選ぶのは本人。
+3. 本人が内容を確認し、**窓口に見せる範囲を選ぶ**。
+4. 窓口（ログインあり）は、**選ばれた範囲だけ**を見て、本人に**読み返し**、本人の返事を記録する。
+5. 本人が「合っている」と答えた後でだけ、次の窓口へ**引き継げる**。
+6. 本人は、いつでも**取り下げ**られる。誰がいつ開いたかも、本人が見られる。
+7. 経過は、**改ざん検知つきの記録**（ハッシュ連鎖）に残る。**本文は記録に入れない。**
+
+## 見せ方（選択肢）
+- 本人の携帯の画面を、そのまま見せる（`/show/…`。大きな文字、ログイン不要）
+- 紙・PDF：作成日時（秒まで）、照合コード、QRとリンク、署名欄つき。`/verify/…` で、紙が原本と同じかを確かめられる
+- 窓口がログインして画面で見る（`/window/…`）。窓口側には「記録用にコピー（文字）」
+- 項目ごとのコピー（窓口の用紙への書き写し用）
+
+## 仕組みを見る
+`/how` で、作り話の例を使い、実際のしくみ（入力の確認、AIの検証、見せる範囲、本人の確認、記録の改ざん検知、紙の照合、取り下げ）を動かした結果を、その場で確認できる。
+
+## 制御（自律性とその制御）
+- AI の出力は、必ず検証する：診断・評価・責める調子・個人情報・推測は通さず、固定の質問に戻る。
+- 引用候補は、本人の発言に実在する文字列のみ。言い換えは使わない。
+- 緊急を示す言葉があれば、110／119／189 を先に表示する。
+- 回数制限と入力サイズの上限、窓口のログイン（署名つきセッション）。
+- 改ざんは「防ぐ」のではなく**検知**する。訂正は、消さずに追記する。
+
+## AI の使用（開示）
+- 使っているのは Gemini（既定は `gemini-3.5-flash-lite`）。役割は、質問の選択と、引用候補の提示のみ。
+- 本人の言葉を要約・評価・診断するためには使わない。
+- この開発では、Claude Code（Anthropic）を実装の補助に使っている。
+
+## 現在の限界（正直に）
+- 保管はメモリ上（デモ用）。提出版は Firestore に切り替える予定。
+- 音声入力は、現状ブラウザ標準。Google の Speech-to-Text への切り替えは、これから。
+- 窓口名・引き継ぎ先は例であり、実在の機関との提携はありません。
+- 現場での効果（聞き直しの回数・時間）は、**試用で測る予定**で、まだ測っていません。
+
+## 開発
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp env.sample .env.local   # 値を入れる（Git には入れない）
+npm install
+npm run dev                # http://localhost:3000
+npm run verify             # 型・lint・テスト・秘密情報の混入チェック
+npm run verify:full        # 上に加えて next build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 構成
+```
+本人（ブラウザ） ──► Next.js（Cloud Run 予定）
+                       ├─ /api/agent  ─► Gemini（質問選択・引用候補） ─► 検証層（ガードレール）
+                       ├─ /api/cards  ─► 保管（Firestore 予定）＋ 改ざん検知つき記録
+窓口（ログイン） ──►  └─ /window/[token]（選ばれた範囲だけ表示）
+```
