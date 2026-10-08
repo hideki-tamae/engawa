@@ -67,10 +67,10 @@ export default function ForWindows() {
         同じ話を、最初から聞き直す手間を、減らせるかもしれません。
       </p>
 
-      <nav aria-label="このページの内容" className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Link href="/window" className={buttonClass("primary", "w-full")}>窓口のログイン・手帳を開く</Link>
+      <nav aria-label="このページの内容" className="mt-6 grid gap-3">
+        <Link href="/window" className={buttonClass("primary", "w-full whitespace-nowrap")}>窓口ログイン・手帳を開く</Link>
         <a href="#receive" className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
-        <a href="#pilot-h" className={buttonClass("quiet", "w-full sm:col-span-2")}>無料パイロットに申し込む</a>
+        <a href="#pilot-h" className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
       </nav>
 
       <section id="receive" className="mt-8 scroll-mt-6 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="receive-h">
