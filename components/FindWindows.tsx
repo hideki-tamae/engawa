@@ -10,6 +10,7 @@ interface Found {
   what: string;
   url?: string;
   verified: boolean;
+  searchUrl?: string;
 }
 
 /**
@@ -117,9 +118,20 @@ export default function FindWindows({ whats, helps }: { whats: string[]; helps: 
                       <span className="sr-only">（新しいタブで開きます）</span>
                     </a>
                   ) : (
-                    <p className="mt-2 text-sm leading-6 text-muted">
-                      リンクを確認できませんでした。公式サイトで「{c.name}」と検索してください。
-                    </p>
+                    <div className="mt-2 text-sm leading-6 text-muted">
+                      <p>ページのリンクは、確認できませんでした。</p>
+                      {c.searchUrl && (
+                        <a
+                          href={c.searchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex min-h-11 items-center text-base font-semibold text-wood-dark underline underline-offset-4"
+                        >
+                          公式サイトの中で「{c.name}」を検索する
+                          <span className="sr-only">（検索結果が、新しいタブで開きます）</span>
+                        </a>
+                      )}
+                    </div>
                   )}
                 </li>
               ))}

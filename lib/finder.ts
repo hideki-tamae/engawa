@@ -22,6 +22,10 @@ export interface Candidate {
   verified: boolean;
   /** 確かめられなかった理由（画面には出さず、ログに使う） */
   reason?: "domain" | "http" | "mismatch" | "timeout" | "no_url";
+  /** 確かめたときの HTTP の状態（ログ用） */
+  status?: number;
+  /** 確かめられなかったとき：その公式サイトの中で、窓口の名前を検索するリンク（ページではなく、検索） */
+  searchUrl?: string;
 }
 
 export type FindOutcome = { ok: true; candidates: Candidate[]; checkedAt: string } | { ok: false; reason: "invalid_input" | "no_model" | "model_failed" };
@@ -73,13 +77,18 @@ export function validateInput(input: unknown): { ok: true; value: FinderInput } 
 
 const SYSTEM = `あなたは、日本の公的な相談窓口を、公式サイトの情報だけを根拠に探す調査役です。
 守ること：推測で書かない。電話番号・メールアドレス・住所は書かない。民間の会社や団体は入れない。診断や評価はしない。
-出力は、JSON の配列だけ。各要素は {"name":"窓口の名前","kind":"市区町村|都道府県|国","what":"相談できること（1文）","url":"公式ページのURL"}。最大3件。`;
+出力は、JSON の配列だけ。各要素は {"name":"窓口の名前","kind":"市区町村|都道府県|国","what":"相談できること（1文）","url":"公式ページのURL"}。最大5件。`;
 
 export function buildPrompt(i: FinderInput): string {
   const where = i.area ? `${i.area}で` : "日本で";
   const topics = i.whats.length ? i.whats.join("、") : "生活や家族の困りごと全般";
   const wants = i.helps.length ? `（${i.helps.join("、")}）` : "";
-  return `${where}、「${topics}」${wants}について相談できる、公的な窓口（市区町村・都道府県・国の機関）を、公式サイトの情報だけを根拠に、最大3件。`;
+  return `${where}、「${topics}」${wants}について相談できる、公的な窓口（市区町村・都道府県・国の機関）を、公式サイトの情報だけを根拠に、最大5件。`;
+}
+
+/** 公式サイトの名前（ドメイン）は、AI が返したものを使い、中身（パス）は使わない。名前で、サイト内を検索するリンクにする。 */
+export function siteSearchUrl(host: string, name: string): string {
+  return `https://www.google.com/search?q=${encodeURIComponent(`site:${host} ${name}`)}`;
 }
 
 export function parseCandidates(text: string): { name: string; kind: string; what: string; url: string }[] {
@@ -141,9 +150,10 @@ export async function findWindows(
       else if (!u) return; // 公的でないドメインは、名前ごと捨てる
       else {
         const page = await deps.fetchPage(u.toString()).catch(() => null);
-        if (!page) cand = { ...c, url: undefined, verified: false, reason: "timeout" };
-        else if (!page.ok) cand = { ...c, url: undefined, verified: false, reason: "http" };
-        else if (!nameMatchesPage(c.name, page.text)) cand = { ...c, url: undefined, verified: false, reason: "mismatch" };
+        const searchUrl = siteSearchUrl(u.hostname, c.name);
+        if (!page) cand = { ...c, url: undefined, verified: false, reason: "timeout", searchUrl };
+        else if (!page.ok) cand = { ...c, url: undefined, verified: false, reason: "http", status: page.status, searchUrl };
+        else if (!nameMatchesPage(c.name, page.text)) cand = { ...c, url: undefined, verified: false, reason: "mismatch", searchUrl };
         else cand = { ...c, url: u.toString(), verified: true };
       }
       if (seen.has(cand.name)) return;
@@ -161,7 +171,7 @@ export const fetchOfficialPage: FetchPage = async (url) => {
   if (!first) return null;
   let current: URL = first;
   for (let hop = 0; hop < 4; hop++) {
-    const res: Response = await fetch(current, { redirect: "manual", signal: AbortSignal.timeout(6000), headers: { "user-agent": "EngawaLinkCheck/1.0" } });
+    const res: Response = await fetch(current, { redirect: "manual", signal: AbortSignal.timeout(6000), headers: { "user-agent": "Mozilla/5.0 (compatible; EngawaLinkCheck/1.0; +https://github.com/hideki-tamae/engawa)", accept: "text/html,application/xhtml+xml", "accept-language": "ja,en;q=0.5" } });
     if (res.status >= 300 && res.status < 400) {
       const loc: string | null = res.headers.get("location");
       const next: URL | null = loc ? safeUrl(new URL(loc, current).toString()) : null;

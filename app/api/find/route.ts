@@ -35,11 +35,13 @@ export async function POST(request: Request) {
     proposed: out.candidates.length,
     verified,
     unverified: out.candidates.length - verified,
+    reasons: out.candidates.filter((c) => !c.verified).map((c) => c.reason ?? "unknown"),
+    statuses: out.candidates.filter((c) => !c.verified).map((c) => String(c.status ?? "")),
     has_area: Boolean(v.value.area),
     latency_ms: Date.now() - t0,
   }, verified === 0 ? "WARNING" : "INFO");
   return Response.json({
     checkedAt: out.checkedAt,
-    candidates: out.candidates.map(({ name, kind, what, url, verified }) => ({ name, kind, what, url, verified })),
+    candidates: out.candidates.map(({ name, kind, what, url, verified, searchUrl }) => ({ name, kind, what, url, verified, searchUrl })),
   });
 }

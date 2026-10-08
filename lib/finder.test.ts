@@ -60,6 +60,8 @@ describe("探して、確かめる", () => {
     expect(r.ok && r.candidates[0].verified).toBe(false);
     expect(r.ok && r.candidates[0].url).toBeUndefined();
     expect(r.ok && r.candidates[0].reason).toBe("http");
+    // ページではなく「サイト内の検索」への導線が付く（公的なドメインの中だけ）
+    expect(r.ok && r.candidates[0].searchUrl).toContain("site%3Awww.city.example.lg.jp");
   });
   it("内容が名前と合わないものは、リンクを出さない", async () => {
     const r = await findWindows(base, {
