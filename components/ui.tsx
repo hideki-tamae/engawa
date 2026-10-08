@@ -52,7 +52,7 @@ export function Chip({
 /** いま何番目か。数字と言葉の両方で示す。 */
 export function StepDots({ steps, current }: { steps: string[]; current: number }) {
   return (
-    <nav aria-label="進み具合" className="mb-8">
+    <nav aria-label="進み具合" className="sticky top-0 z-20 -mx-5 mb-8 bg-paper/95 px-5 pb-3 pt-3 backdrop-blur">
       <ol className="flex items-center gap-2">
         {steps.map((s, i) => (
           <li key={s} className="flex flex-1 flex-col items-center gap-1.5" aria-current={i === current ? "step" : undefined}>
