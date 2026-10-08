@@ -18,6 +18,7 @@ import { REFUSAL_MESSAGES, type ScreenResult, screenInput } from "@/lib/guardrai
 import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import HandbookCard from "@/components/HandbookCard";
+import { Cat, Guide } from "@/components/Cat";
 import Hero from "@/components/Hero";
 import Qr from "@/components/Qr";
 import Veranda from "@/components/Veranda";
@@ -38,6 +39,7 @@ import {
   IconUndo,
 } from "@/components/icons";
 import { Button, Chip, Notice, StepDots, buttonClass } from "@/components/ui";
+import { initTrial, track, useTrialMode } from "@/lib/trial-client";
 
 const FIELD_LABEL: Record<FieldKey, string> = {
   when: "いつ頃",
@@ -48,6 +50,15 @@ const FIELD_LABEL: Record<FieldKey, string> = {
 const DEFAULT_ORDER: FieldKey[] = ["what", "help", "when", "where"];
 const FLOW_STEPS = ["書く", "質問", "確認", "見せ方"];
 
+function TrialBanner() {
+  return (
+    <div className="sticky top-0 z-30 border-b border-sun/60 bg-[#fff3d1] px-4 py-2 text-center text-sm leading-6 text-ink print:hidden" role="status">
+      <strong>試用中です。</strong>操作にかかった時間と、最後まで進めたかだけを、匿名で記録しています。<strong>あなたの言葉や、選んだ内容は、記録しません。</strong>
+    </div>
+  );
+}
+
+const DRAFT_KEY = "engawa_draft";
 type Step = "welcome" | "write" | "ask" | "confirm" | "scope" | "done";
 const STEP_INDEX: Partial<Record<Step, number>> = { write: 0, ask: 1, confirm: 2, scope: 3 };
 
@@ -89,6 +100,7 @@ export default function PersonFlow() {
   const [card, setCard] = useState<ProblemCard | null>(null);
   const rec = useRef<SpeechRecognitionLike | null>(null);
   const [proposal, setProposal] = useState<AgentProposal | null>(null);
+  const [thinking, setThinking] = useState(false);
   const [qi, setQi] = useState(0);
   const qiRef = useRef(0);
   useEffect(() => {
@@ -104,11 +116,49 @@ export default function PersonFlow() {
   const [showLink, setShowLink] = useState<string | null>(null);
   const [proof, setProof] = useState<{ createdAt: string; code: string; url: string } | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyOpen, setCopyOpen] = useState(false);
+  const trial = useTrialMode();
+  useEffect(() => {
+    initTrial();
+  }, []);
+
+  // 書きかけは、この画面（タブ）の中にだけ、一時的に残す。閉じると消える。完成したら、すぐ消す。
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw) as { text?: string; picks?: Record<FieldKey, string[]>; own?: Record<FieldKey, string> };
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (d.text) setText(d.text);
+        if (d.picks) setPicks(d.picks);
+        if (d.own) setOwn(d.own);
+        if (d.text) setRestored(true);
+      }
+    } catch {
+      /* 読めなければ、何もしない */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      if (step === "done" || (!text && !FIELD_KEYS.some((k) => picks[k].length || own[k]))) {
+        sessionStorage.removeItem(DRAFT_KEY);
+      } else {
+        sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ text, picks, own }));
+      }
+    } catch {
+      /* 保存できない環境では、何もしない */
+    }
+  }, [text, picks, own, step]);
+  useEffect(() => {
+    if (step === "write" || step === "ask" || step === "confirm" || step === "scope") track(`step_${step}`);
+  }, [step]);
 
   function copy(key: string, value: string) {
     void navigator.clipboard.writeText(value);
+    track(key === "window" || key === "mine" ? "share_link_copy" : "share_field_copy");
     setCopied(key);
     setTimeout(() => setCopied((c) => (c === key ? null : c)), 1600);
   }
@@ -122,6 +172,11 @@ export default function PersonFlow() {
       return;
     }
     const o = window.location.origin;
+    track("card_created", {
+      voice: voiceUsed,
+      skipped: FIELD_KEYS.filter((k) => !c.fields[k]).length,
+      shared: c.shareScope.length,
+    });
     setLink(`${o}/window/${j.token}`);
     setMineLink(`${o}/card/${j.token}`);
     setShowLink(`${o}/show/${j.token}`);
@@ -136,7 +191,11 @@ export default function PersonFlow() {
   useEffect(() => {
     if (step !== "ask" || !card) return;
     let alive = true;
-    fetch("/api/agent", { method: "POST", body: JSON.stringify(card) })
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setThinking(true);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    fetch("/api/agent", { method: "POST", body: JSON.stringify(card), signal: ctrl.signal })
       .then((r) => r.json())
       .then((j) => {
         if (!alive) return;
@@ -146,9 +205,15 @@ export default function PersonFlow() {
           setOrder([p.field, ...DEFAULT_ORDER.filter((k) => k !== p.field)]);
         }
       })
-      .catch(() => alive && setProposal(null));
+      .catch(() => alive && setProposal(null))
+      .finally(() => {
+        clearTimeout(timer);
+        if (alive) setThinking(false);
+      });
     return () => {
       alive = false;
+      clearTimeout(timer);
+      ctrl.abort();
     };
     // 発言が変わったときだけ、聞き直す
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,6 +290,7 @@ export default function PersonFlow() {
   }
 
   function restart() {
+    track("restart");
     setLink(null);
     setMineLink(null);
     setShowLink(null);
@@ -244,6 +310,8 @@ export default function PersonFlow() {
   /* ---------------- ようこそ ---------------- */
   if (step === "welcome") {
     return (
+      <>
+      {trial && <TrialBanner />}
       <div className="mx-auto w-full max-w-xl px-5 pb-16 pt-6">
         <div className="anim-fade-up">
           <Veranda className="h-auto w-full rounded-3xl shadow-soft" />
@@ -266,12 +334,32 @@ export default function PersonFlow() {
         <div className="anim-fade-up mt-8 [animation-delay:200ms]">
           <button
             type="button"
-            onClick={() => setStep("write")}
+            onClick={() => {
+              track("start");
+              setStep("write");
+            }}
             className={buttonClass("primary", "w-full min-h-16 text-xl")}
           >
-            はじめる
+            {restored ? "書きかけの続きから" : "はじめる"}
             <IconArrow className="h-6 w-6" />
           </button>
+          {restored && (
+            <p className="mt-3 text-center text-sm text-muted">
+              書きかけが、残っています。
+              <button
+                type="button"
+                className="ml-1 inline-flex min-h-11 items-center underline underline-offset-4"
+                onClick={() => {
+                  setText("");
+                  setPicks({ when: [], where: [], what: [], help: [] });
+                  setOwn({ when: "", where: "", what: "", help: "" });
+                  setRestored(false);
+                }}
+              >
+                消して、はじめから
+              </button>
+            </p>
+          )}
           <ul className="mt-6 space-y-3">
             {[
               { icon: <IconShield className="h-6 w-6" />, t: "診断や評価はしません", d: "あなたの言葉を、そのまま整えるだけです。" },
@@ -294,6 +382,7 @@ export default function PersonFlow() {
           </p>
         </div>
       </div>
+      </>
     );
   }
 
@@ -301,6 +390,8 @@ export default function PersonFlow() {
   if (step === "done" && card) {
     const fields = selectedFields(card, true);
     return (
+      <>
+      {trial && <TrialBanner />}
       <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-8">
         <div className="print:hidden">
           <div className="anim-fade-up text-center">
@@ -326,7 +417,7 @@ export default function PersonFlow() {
           </div>
 
           {showLink && (
-            <a href={new URL(showLink).pathname} className={buttonClass("primary", "mt-8 w-full min-h-16 text-xl")}>
+            <a href={new URL(showLink).pathname} onClick={() => track("share_show")} className={buttonClass("primary", "mt-8 w-full min-h-16 text-xl")}>
               <IconPhone className="h-6 w-6" />
               窓口に画面を見せる
             </a>
@@ -334,7 +425,19 @@ export default function PersonFlow() {
           {shareError && (
             <div className="mt-4">
               <Notice tone="warn" role="alert">
-                {shareError}
+                <p>{shareError}</p>
+                <Button
+                  variant="quiet"
+                  className="mt-3 w-full"
+                  disabled={retrying}
+                  onClick={async () => {
+                    setRetrying(true);
+                    await publish(card);
+                    setRetrying(false);
+                  }}
+                >
+                  {retrying ? "送っています…" : "もう一度、試す"}
+                </Button>
               </Notice>
             </div>
           )}
@@ -351,7 +454,10 @@ export default function PersonFlow() {
                   <p className="text-sm leading-6 text-muted">日時・照合コード・QRつき。窓口の準備は要りません。</p>
                 </div>
               </div>
-              <Button variant="quiet" className="mt-3 w-full" onClick={() => window.print()}>
+              <Button variant="quiet" className="mt-3 w-full" onClick={() => {
+                  track("share_print");
+                  window.print();
+                }}>
                 <IconPrint className="h-5 w-5" />
                 印刷する（紙・PDF）
               </Button>
@@ -444,6 +550,15 @@ export default function PersonFlow() {
             )}
           </ul>
 
+          {trial && (
+            <div className="mt-10 rounded-3xl border border-sun/70 bg-[#fff3d1] p-5 text-center">
+              <p className="font-semibold">試用に、ご協力ありがとうございます。</p>
+              <p className="mt-1 text-sm leading-7 text-muted">感想を、1枚の採点（2分）で教えてください。</p>
+              <a href="/rate" className={buttonClass("primary", "mt-4 w-full")}>
+                採点する（1枚）
+              </a>
+            </div>
+          )}
           <div className="mt-10 text-center">
             <Button variant="ghost" onClick={restart}>
               新しい手帳を作る
@@ -485,6 +600,7 @@ export default function PersonFlow() {
           )}
         </div>
       </div>
+      </>
     );
   }
 
@@ -496,6 +612,8 @@ export default function PersonFlow() {
   const lastQuestion = qi >= order.length - 1;
 
   return (
+    <>
+    {trial && <TrialBanner />}
     <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-6">
       <div className="mb-6 flex items-center justify-between">
         <button
@@ -504,10 +622,15 @@ export default function PersonFlow() {
           className="inline-flex min-h-11 items-center text-lg font-bold tracking-tight text-wood-dark"
           aria-label="最初の画面にもどる"
         >
-          Engawa <span className="text-sm font-semibold text-wood">縁側</span>
+          <Cat className="mr-2 h-9 w-9" />
+          Engawa <span className="ml-1.5 text-sm font-semibold text-wood">縁側</span>
         </button>
       </div>
       {stepIdx !== undefined && <StepDots steps={FLOW_STEPS} current={stepIdx} />}
+      {step === "write" && <Guide>急がなくて、大丈夫ですよ。</Guide>}
+      {step === "ask" && <Guide>答えたいものだけで、大丈夫です。</Guide>}
+      {step === "confirm" && <Guide>違うところがあれば、直せます。</Guide>}
+      {step === "scope" && <Guide>見せる範囲は、あなたが決めます。</Guide>}
 
       {notice && notice.verdict === "escalate" && (
         <div className="mb-6">
@@ -590,7 +713,7 @@ export default function PersonFlow() {
 
           <p className="mt-5 flex items-start gap-2 text-sm leading-6 text-muted">
             <IconLock className="mt-1 h-4 w-4 shrink-0" />
-            声は保存しません。文字に直した内容だけを使い、あとで直せます。お名前や連絡先は、書かなくて大丈夫です。
+            声は保存しません。文字に直した内容だけを使い、あとで直せます。書きかけは、この画面を閉じると消えます。お名前や連絡先は、書かなくて大丈夫です。
           </p>
 
           <div className="mt-8 flex gap-3">
@@ -613,7 +736,15 @@ export default function PersonFlow() {
           <blockquote className="mt-3 rounded-2xl border-l-4 border-wood/60 bg-paper-2 p-4 text-base leading-8 text-ink">
             {card.statement}
           </blockquote>
-          <h1 className="mt-7 text-2xl font-bold leading-10">{question}</h1>
+          {thinking && qi === 0 && !proposal ? (
+            <div className="mt-7" role="status" aria-live="polite">
+              <div className="h-8 w-11/12 animate-pulse rounded-xl bg-paper-3" />
+              <div className="mt-3 h-8 w-7/12 animate-pulse rounded-xl bg-paper-3" />
+              <p className="mt-3 text-sm text-muted">質問を、考えています…</p>
+            </div>
+          ) : (
+            <h1 className="mt-7 text-2xl font-bold leading-10">{question}</h1>
+          )}
           <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
             <span>いくつでも選べます。飛ばしても大丈夫です。</span>
             {useAi && proposal?.source === "gemini" && (
@@ -792,5 +923,6 @@ export default function PersonFlow() {
         </div>
       )}
     </div>
+    </>
   );
 }

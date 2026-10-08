@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import type { Step } from "@/lib/demo";
 import { IconBack, IconCheck, IconShield, IconUndo } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
+import type { TrialSummary } from "@/lib/trial";
 
 export default function HowItWorks() {
   const [steps, setSteps] = useState<Step[] | null>(null);
   const [error, setError] = useState(false);
   const [run, setRun] = useState(0);
+  const [trial, setTrial] = useState<(TrialSummary & { enough: boolean }) | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -24,6 +26,17 @@ export default function HowItWorks() {
       alive = false;
     };
   }, [run]);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/trial/summary")
+      .then((r) => r.json())
+      .then((j) => alive && setTrial(j))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const total = steps?.reduce((n, s) => n + s.checks.length, 0) ?? 0;
   const passed = steps?.reduce((n, s) => n + s.checks.filter((c) => c.ok).length, 0) ?? 0;
@@ -96,6 +109,31 @@ export default function HowItWorks() {
               </li>
             ))}
           </ol>
+
+          <section className="mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft">
+            <h2 className="text-xl font-bold">試用の結果</h2>
+            <p className="mt-1 text-sm leading-7 text-muted">
+              試用のリンクから入った人の、操作にかかった時間と、最後まで進めたかだけの集計です。言葉や内容は、記録していません。
+            </p>
+            {trial && trial.enough ? (
+              <dl className="mt-4 grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-2xl bg-paper-2 p-3">
+                  <dt className="text-xs text-muted">試した人</dt>
+                  <dd className="text-2xl font-bold tabular-nums">{trial.started}</dd>
+                </div>
+                <div className="rounded-2xl bg-paper-2 p-3">
+                  <dt className="text-xs text-muted">最後まで進んだ人</dt>
+                  <dd className="text-2xl font-bold tabular-nums">{Math.round((trial.completionRate ?? 0) * 100)}%</dd>
+                </div>
+                <div className="rounded-2xl bg-paper-2 p-3">
+                  <dt className="text-xs text-muted">手帳ができるまで（中央値）</dt>
+                  <dd className="text-2xl font-bold tabular-nums">{trial.medianSeconds}秒</dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="mt-4 rounded-2xl bg-paper-2 p-4 text-base leading-7">まだ数値が出ていません。（3人以上が試すと、ここに出ます。）</p>
+            )}
+          </section>
 
           <div className="mt-8 text-center">
             <Button

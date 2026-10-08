@@ -2,6 +2,8 @@
  * 縁側の風景。午後の光、木の床、湯のみと手帳。
  * 家の「内」と「外」のあいだで、人が腰かけて話せる場所、という名前の由来を、そのまま絵にした。
  */
+import { CatArt } from "./Cat";
+
 export default function Veranda({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 640 240" role="img" aria-label="縁側の絵。午後の光が差す木の床に、湯のみと手帳が置かれている。" className={className}>
@@ -36,9 +38,12 @@ export default function Veranda({ className = "" }: { className?: string }) {
         <line key={i} x1="0" x2="640" y1={186 + i * 15} y2={186 + i * 15} stroke="#8d6531" strokeOpacity="0.55" strokeWidth="1.5" />
       ))}
       <path d="M0 172 H640" stroke="#e1b878" strokeWidth="3" />
-      {/* 座布団 */}
-      <ellipse cx="170" cy="206" rx="52" ry="12" fill="#b0442f" opacity="0.9" />
-      <ellipse cx="170" cy="202" rx="52" ry="12" fill="#c9553d" />
+      {/* 座布団とねこ */}
+      <ellipse cx="170" cy="210" rx="56" ry="12" fill="#b0442f" opacity="0.9" />
+      <ellipse cx="170" cy="206" rx="56" ry="12" fill="#c9553d" />
+      <g transform="translate(106,112) scale(0.98)">
+        <CatArt />
+      </g>
       {/* 湯のみと湯気 */}
       <g transform="translate(262,176)">
         <path d="M0 8 h40 l-4 26 q-16 8 -32 0z" fill="#f4efe6" stroke="#7a5a2f" strokeWidth="2" />

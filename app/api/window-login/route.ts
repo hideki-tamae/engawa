@@ -1,14 +1,18 @@
 import { SESSION_COOKIE, checkLogin, issue } from "@/lib/session";
+import { logEvent } from "@/lib/log";
 import { allow, clientKey } from "@/lib/ratelimit";
 
 export async function POST(request: Request) {
   if (!allow(`login:${clientKey(request)}`, 10, 60_000)) {
+    logEvent("rate_limited", { route: "window-login" }, "WARNING");
     return Response.json({ error: "rate_limited" }, { status: 429 });
   }
   const body = (await request.json().catch(() => ({}))) as { user?: string; password?: string };
   if (!body.user || !body.password || !checkLogin(body.user, body.password)) {
+    logEvent("window_login_failed", {}, "WARNING");
     return Response.json({ error: "invalid" }, { status: 401 });
   }
+  logEvent("window_login_ok", {});
   const res = Response.json({ user: body.user });
   res.headers.append(
     "set-cookie",

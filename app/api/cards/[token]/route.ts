@@ -1,5 +1,6 @@
 import { verifyChain } from "@/lib/audit-chain";
 import { handOff, open, recordReadBack, withdraw } from "@/lib/handoff";
+import { logEvent } from "@/lib/log";
 import { SESSION_COOKIE, verify } from "@/lib/session";
 import { store } from "@/lib/store";
 
@@ -44,7 +45,11 @@ export async function POST(request: Request, ctx: RouteContext<"/api/cards/[toke
   } else {
     return Response.json({ error: "unknown_action" }, { status: 400 });
   }
-  if (!next.ok) return Response.json({ error: next.reason }, { status: 409 });
+  if (!next.ok) {
+    logEvent("card_action_refused", { action: body.action, reason: next.reason }, "NOTICE");
+    return Response.json({ error: next.reason }, { status: 409 });
+  }
+  logEvent("card_action", { action: body.action });
   await store.put(next.value);
   return Response.json({ log: next.value.log, chain: verifyChain(next.value.log) });
 }
