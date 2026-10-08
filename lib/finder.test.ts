@@ -179,3 +179,10 @@ describe("JSONにならなかったとき", () => {
     expect(r.ok && r.candidates.length).toBe(0);
   });
 });
+
+describe("細かい「どんなこと」の選択肢", () => {
+  it("追加した選択肢も、相談先の探索で受け付ける", () => {
+    expect(validateInput({ helps: [], whats: ["食べるものがない", "子育て・介護のこと"] }).ok).toBe(true);
+    expect(validateInput({ helps: [], whats: ["知らない選択肢"] }).ok).toBe(false);
+  });
+});

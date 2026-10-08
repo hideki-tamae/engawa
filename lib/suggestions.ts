@@ -10,6 +10,16 @@ import { screenRequest } from "./guardrails";
  * 候補は、本人が選ぶまで、カードに入らない。
  */
 
+/**
+ * 「どんなこと」の、細かい選択肢。厚生労働省の相談申込票の分類（支払い・借金、子育て・介護、ひきこもり・不登校、食べ物がない）を参考にした。
+ * 初期表示は、これまでの6つのまま。「ほかにもあてはまるものを見る」を押したときだけ、出す。
+ * 戻したいときは、ENABLE_MORE_WHAT を false にする（画面と、相談先の探索の両方が、元に戻る）。
+ */
+export const ENABLE_MORE_WHAT = true;
+export const WHAT_MORE: string[] = ENABLE_MORE_WHAT
+  ? ["支払いや借金のこと", "子育て・介護のこと", "ひきこもり・不登校のこと", "食べるものがない"]
+  : [];
+
 export const COMMON_OPTIONS: Record<FieldKey, string[]> = {
   when: ["今日・最近のこと", "ここ数か月", "前からずっと", "いつからか分からない"],
   where: ["家", "学校", "職場", "役所・窓口", "施設", "場所は言いにくい"],

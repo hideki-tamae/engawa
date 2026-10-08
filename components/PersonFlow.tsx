@@ -19,6 +19,7 @@ import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import CoverPicker from "@/components/CoverPicker";
 import ProfileEditor from "@/components/ProfileEditor";
+import { WHAT_MORE } from "@/lib/suggestions";
 import FindWindows from "@/components/FindWindows";
 import HandbookCard from "@/components/HandbookCard";
 import { Guide, Mark } from "@/components/Mark";
@@ -127,6 +128,8 @@ export default function PersonFlow() {
   const trial = useTrialMode();
   const cover = useCover();
   const [coverOpen, setCoverOpen] = useState(false);
+  const [moreWhat, setMoreWhat] = useState(false);
+  const [prepOpen, setPrepOpen] = useState(false);
   useEffect(() => {
     initTrial();
   }, []);
@@ -493,6 +496,30 @@ export default function PersonFlow() {
             {coverOpen && (
               <div className="mt-2">
                 <CoverPicker />
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-line bg-paper-2 p-5">
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center justify-between text-left text-lg font-bold"
+              aria-expanded={prepOpen}
+              onClick={() => setPrepOpen((v) => !v)}
+            >
+              窓口に行く前に
+              <span aria-hidden className="text-wood">{prepOpen ? "閉じる" : "見る"}</span>
+            </button>
+            {prepOpen && (
+              <div className="mt-3 text-base leading-8">
+                <p className="text-sm leading-7 text-muted">一般的な例です。窓口や手続きによって違います。行く前に、電話か、窓口の公式ページで、確かめてください。</p>
+                <ul className="mt-3 list-disc space-y-1.5 pl-6">
+                  <li>この手帳（携帯の画面か、紙）</li>
+                  <li>本人確認の書類（運転免許証、パスポート、健康保険証や資格確認書、マイナンバーカードなど）。1点で足りるか、2点必要かは、窓口によります</li>
+                  <li>住所が分かるもの（公共料金の通知、郵便物など）</li>
+                  <li>手続きに関係する書類（通知、契約書、請求書など）</li>
+                  <li>窓口によっては、印鑑</li>
+                </ul>
               </div>
             )}
           </div>
@@ -866,7 +893,19 @@ export default function PersonFlow() {
                 {o}
               </Chip>
             ))}
+            {askField === "what" &&
+              (moreWhat || WHAT_MORE.some((o) => picks.what.includes(o))) &&
+              WHAT_MORE.map((o) => (
+                <Chip key={o} pressed={picks.what.includes(o)} onClick={() => togglePick("what", o)}>
+                  {o}
+                </Chip>
+              ))}
           </div>
+          {askField === "what" && WHAT_MORE.length > 0 && !moreWhat && !WHAT_MORE.some((o) => picks.what.includes(o)) && (
+            <Button variant="ghost" className="mt-2 min-h-11 text-base" onClick={() => setMoreWhat(true)}>
+              ほかにもあてはまるものを見る
+            </Button>
+          )}
           <input
             type="text"
             aria-label={`${FIELD_LABEL[askField]}（自分の言葉で）`}
