@@ -1,29 +1,29 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Engawa（縁側）",
-  description: "困りごとを、本人の言葉のまま、次の窓口へ引き継ぐ手帳",
+  title: "Engawa（縁側）｜困りごとの手帳",
+  description: "困りごとを、あなたの言葉のまま持ち歩ける手帳。窓口が変わっても、同じ話を一からしなくて済むように。",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fbf6ec",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="ja" className="h-full antialiased">
+      <body className="flex min-h-full flex-col">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-wood focus:px-4 focus:py-2 focus:text-paper"
+        >
+          本文へ移動
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

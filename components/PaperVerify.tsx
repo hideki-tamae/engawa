@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconCheck, IconPaper } from "@/components/icons";
+import { Notice } from "@/components/ui";
 
 type Outcome = { match: true; createdAt: string } | { match: false; reason: string };
 
@@ -18,27 +20,41 @@ export default function PaperVerify({ token, code }: { token: string; code: stri
   }, [token, code]);
 
   return (
-    <section className="mx-auto w-full max-w-xl px-5 py-10 text-[#2d2418]">
-      <h1 className="text-2xl font-semibold">紙の照合</h1>
-      <p className="mt-2 text-sm text-[#5b4a33]">
-        手元の紙に印刷された内容が、Engawa の記録と同じかを確かめます。内容そのものは表示しません。
+    <div className="mx-auto w-full max-w-md px-5 py-10">
+      <span className="grid h-14 w-14 place-items-center rounded-2xl bg-wood text-paper shadow-soft">
+        <IconPaper className="h-8 w-8" />
+      </span>
+      <h1 className="mt-5 text-3xl font-bold">紙の照合</h1>
+      <p className="mt-2 text-base leading-8 text-muted">
+        手元の紙に印刷された内容が、Engawa の記録と同じかを確かめます。内容そのものは、表示しません。
       </p>
-      {!r && <p className="mt-6">確認しています…</p>}
+      {!r && <p className="mt-8 text-muted">確認しています…</p>}
       {r?.match === true && (
-        <p role="status" className="mt-6 rounded-2xl border border-green-300 bg-green-50 p-4 text-lg">
-          一致しました。この紙は、{new Date(r.createdAt).toLocaleString("ja-JP")} に作られた記録と、同じ内容です。
-        </p>
+        <div className="anim-pop mt-8 rounded-3xl border border-ok/40 bg-ok-bg p-6 text-center">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ok text-paper">
+            <IconCheck className="h-8 w-8" />
+          </span>
+          <p className="mt-4 text-2xl font-bold text-ok">一致しました</p>
+          <p className="mt-2 text-base leading-8 text-ink">
+            この紙は、{new Date(r.createdAt).toLocaleString("ja-JP")} に作られた記録と、同じ内容です。
+          </p>
+        </div>
       )}
       {r?.match === false && (
-        <p role="alert" className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-lg">
-          {r.reason === "withdrawn"
-            ? "本人が取り下げたため、この紙は無効です。"
-            : "一致しませんでした。紙の内容が書き換えられているか、コードが違います。"}
-        </p>
+        <div className="mt-8">
+          <Notice tone="warn" role="alert">
+            <p className="text-lg font-bold">
+              {r.reason === "withdrawn" ? "本人が取り下げたため、この紙は無効です。" : "一致しませんでした。"}
+            </p>
+            {r.reason !== "withdrawn" && (
+              <p className="mt-1 text-sm leading-7">紙の内容が書き換えられているか、コードが違います。</p>
+            )}
+          </Notice>
+        </div>
       )}
-      <p className="mt-6 text-sm text-[#5b4a33]">
+      <p className="mt-8 text-xs leading-6 text-muted">
         ※ 一致は「紙が記録と同じ内容である」ことを示すだけで、法的な証拠力を保証するものではありません。
       </p>
-    </section>
+    </div>
   );
 }

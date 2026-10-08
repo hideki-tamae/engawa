@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit-chain";
 import type { SharedView } from "@/lib/handoff";
+import HandbookCard from "@/components/HandbookCard";
+import Timeline from "@/components/Timeline";
+import { IconBuilding, IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
+import { Button, Notice } from "@/components/ui";
 
 const LABEL: Record<string, string> = {
   what: "どんなこと",
@@ -10,15 +14,7 @@ const LABEL: Record<string, string> = {
   where: "どこで",
   help: "してほしいこと",
 };
-const EVENT: Record<string, string> = {
-  card_created: "カードができた",
-  shared: "本人が共有した",
-  read_back: "窓口が開いた",
-  confirmed: "本人が「合っている」と確認した",
-  corrected: "本人が「違う」と言った（訂正）",
-  handoff: "次の窓口へ引き継いだ",
-  withdrawn: "本人が取り下げた",
-};
+
 // 引き継ぎ先の例。行政だけでなく、医療・学校・支援団体にも使える（いずれも例であり、現時点では提携はない）
 const NEXT = [
   "子ども家庭支援センター（行政の例）",
@@ -36,6 +32,21 @@ interface Loaded {
   chain: { ok: boolean };
 }
 
+function StepHead({ n, title, done, locked }: { n: number; title: string; done?: boolean; locked?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-base font-bold ${
+          done ? "bg-ok text-paper" : locked ? "bg-paper-3 text-muted" : "bg-wood text-paper"
+        }`}
+      >
+        {done ? <IconCheck className="h-5 w-5" /> : locked ? <IconLock className="h-4 w-4" /> : n}
+      </span>
+      <h2 className="text-xl font-bold">{title}</h2>
+    </div>
+  );
+}
+
 export default function WindowView({ token }: { token: string }) {
   const [data, setData] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +56,7 @@ export default function WindowView({ token }: { token: string }) {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   function load() {
     fetch(`/api/cards/${token}`)
@@ -59,7 +71,7 @@ export default function WindowView({ token }: { token: string }) {
         setData(j);
       })
       .catch((e: Error) =>
-        setError(e.message === "withdrawn" ? "本人が取り下げたため、表示できません。" : "カードが見つかりません。"),
+        setError(e.message === "withdrawn" ? "本人が取り下げたため、表示できません。" : "手帳が見つかりません。"),
       );
   }
 
@@ -69,10 +81,7 @@ export default function WindowView({ token }: { token: string }) {
     e.preventDefault();
     setBusy(true);
     setLoginError(null);
-    const r = await fetch("/api/window-login", {
-      method: "POST",
-      body: JSON.stringify({ user, password }),
-    });
+    const r = await fetch("/api/window-login", { method: "POST", body: JSON.stringify({ user, password }) });
     setBusy(false);
     if (!r.ok) {
       setLoginError(
@@ -88,10 +97,7 @@ export default function WindowView({ token }: { token: string }) {
   }
 
   async function act(action: string) {
-    const r = await fetch(`/api/cards/${token}`, {
-      method: "POST",
-      body: JSON.stringify({ action, to }),
-    });
+    const r = await fetch(`/api/cards/${token}`, { method: "POST", body: JSON.stringify({ action, to }) });
     const j = await r.json();
     if (!r.ok) {
       setError(
@@ -107,144 +113,193 @@ export default function WindowView({ token }: { token: string }) {
 
   function recordText(): string {
     if (!data) return "";
-    const lines = ["【本人から預かったカード（Engawa）】", "※ 本人の言葉です。診断や評価ではありません。", "", `本人の言葉：${data.view.statement}`];
+    const lines = [
+      "【本人から預かった手帳（Engawa）】",
+      "※ 本人の言葉です。診断や評価ではありません。",
+      "",
+      `本人の言葉：${data.view.statement}`,
+    ];
     for (const [k, f] of Object.entries(data.view.fields)) lines.push(`${LABEL[k]}：${f?.value}`);
     lines.push("", `取得日時：${new Date().toLocaleString("ja-JP")}`);
     return lines.join("\n");
   }
 
-  const btn = "rounded-full border border-[#7a5a2f]/50 px-5 py-2 text-base hover:bg-[#7a5a2f]/10";
-
   if (needLogin) {
     return (
-      <form onSubmit={login} className="mx-auto w-full max-w-sm px-5 py-10 text-[#2d2418]">
-        <h1 className="text-2xl font-semibold">窓口のログイン</h1>
-        <div className="mt-3 rounded-2xl bg-[#f3ead9] p-4 text-sm leading-6 text-[#4a3a22]">
-          <p className="font-medium">この画面は、相談を受ける側（窓口・支援者）のものです。</p>
-          <p className="mt-1">
-            困っている本人がカードを作ると、窓口に見せるためのリンクができます。そのリンクを窓口が開くと、ここに来ます。
-            本人の画面ではありません。
-          </p>
-          <p className="mt-2">
-            デモ版です。窓口名は「窓口A」か「窓口B」。パスワードは提出資料に書いてあります。現時点では、実在の機関との提携や連携はありません。
-          </p>
-        </div>
-        <label className="mt-5 block text-base">
-          窓口名
+      <div className="mx-auto w-full max-w-md px-5 py-10">
+        <form onSubmit={login} className="anim-fade-up">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-wood text-paper shadow-soft">
+            <IconBuilding className="h-8 w-8" />
+          </span>
+          <h1 className="mt-5 text-3xl font-bold">窓口のログイン</h1>
+          <div className="mt-4">
+            <Notice tone="info">
+              <p className="font-semibold">この画面は、相談を受ける側（窓口・支援者）のものです。</p>
+              <p className="mt-1 text-sm leading-7 text-muted">
+                困っている本人が手帳を作ると、窓口に見せるためのリンクができます。そのリンクを窓口が開くと、ここに来ます。本人の画面ではありません。
+              </p>
+              <p className="mt-2 text-sm leading-7 text-muted">
+                デモ版です。窓口名は「窓口A」か「窓口B」。パスワードは提出資料に書いてあります。現時点では、実在の機関との提携や連携はありません。
+              </p>
+            </Notice>
+          </div>
+          <label className="mt-6 block text-base font-semibold" htmlFor="u">
+            窓口名
+          </label>
           <input
+            id="u"
             value={user}
             onChange={(e) => setUser(e.target.value)}
             autoComplete="username"
-            className="mt-1 w-full rounded-xl border border-[#7a5a2f]/40 bg-white p-3"
+            className="mt-1.5 w-full rounded-2xl border-2 border-line bg-white p-4 text-lg focus:border-wood focus:outline-none"
           />
-        </label>
-        <label className="mt-4 block text-base">
-          パスワード
+          <label className="mt-5 block text-base font-semibold" htmlFor="p">
+            パスワード
+          </label>
           <input
+            id="p"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
-            className="mt-1 w-full rounded-xl border border-[#7a5a2f]/40 bg-white p-3"
+            className="mt-1.5 w-full rounded-2xl border-2 border-line bg-white p-4 text-lg focus:border-wood focus:outline-none"
           />
-        </label>
-        {loginError && (
-          <p role="alert" className="mt-4 rounded-xl border border-red-300 bg-red-50 p-3 text-base">
-            {loginError}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={busy || !user || !password}
-          className="mt-6 rounded-full bg-[#7a5a2f] px-6 py-3 text-lg font-medium text-white disabled:opacity-40"
-        >
-          {busy ? "確認しています…" : "ログイン"}
-        </button>
-      </form>
+          {loginError && (
+            <div className="mt-4">
+              <Notice tone="warn" role="alert">
+                {loginError}
+              </Notice>
+            </div>
+          )}
+          <Button type="submit" className="mt-7 w-full" disabled={busy || !user || !password}>
+            {busy ? "確認しています…" : "ログイン"}
+          </Button>
+        </form>
+      </div>
     );
   }
 
-  if (error && !data) return <p className="mx-auto max-w-xl p-6 text-lg">{error}</p>;
-  if (!data) return <p className="mx-auto max-w-xl p-6">読み込み中…</p>;
+  if (error && !data) {
+    return (
+      <div className="mx-auto max-w-md px-5 py-16">
+        <Notice tone="info" role="alert">
+          {error}
+        </Notice>
+      </div>
+    );
+  }
+  if (!data) return <p className="mx-auto max-w-md px-5 py-16 text-muted">読み込んでいます…</p>;
+
+  const confirmed = data.log.some((e) => e.type === "confirmed");
+  const handedOff = data.log.some((e) => e.type === "handoff");
 
   return (
-    <section className="mx-auto w-full max-w-xl px-5 py-10 text-[#2d2418]">
-      <h1 className="text-2xl font-semibold">窓口：本人から預かったカード</h1>
-      <p className="mt-2 text-sm text-[#5b4a33]">
+    <div className="mx-auto w-full max-w-5xl px-5 pb-20 pt-8">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold text-wood">
+            <IconBuilding className="h-5 w-5" />
+            窓口
+          </p>
+          <h1 className="mt-1 text-3xl font-bold">本人から預かった手帳</h1>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
+            data.chain.ok ? "bg-ok-bg text-ok" : "bg-warn-bg text-warn"
+          }`}
+        >
+          <IconShield className="h-4 w-4" />
+          記録の改ざん検知：{data.chain.ok ? "異常なし" : "異常あり"}
+        </span>
+      </header>
+      <p className="mt-2 text-base leading-7 text-muted">
         本人が選んだ範囲だけを表示しています。診断や評価の欄はありません。
       </p>
-      <dl className="mt-5 space-y-4 rounded-2xl bg-[#f3ead9] p-5">
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         <div>
-          <dt className="text-sm text-[#5b4a33]">本人の言葉</dt>
-          <dd className="mt-1 text-lg leading-8">{data.view.statement}</dd>
+          <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={confirmed} />
+          <Button
+            variant="quiet"
+            className="mt-4 w-full"
+            onClick={() => {
+              void navigator.clipboard.writeText(recordText());
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1600);
+            }}
+          >
+            <IconCopy className="h-5 w-5" />
+            {copied ? "コピーしました" : "記録用にコピー（文字）"}
+          </Button>
+          <p className="mt-2 text-xs leading-5 text-muted">窓口の記録システムや用紙に、貼り付けて使えます。</p>
         </div>
-        {Object.entries(data.view.fields).map(([k, f]) => (
-          <div key={k}>
-            <dt className="text-sm text-[#5b4a33]">{LABEL[k]}</dt>
-            <dd className="mt-1 text-lg">{f?.value}</dd>
-          </div>
-        ))}
-      </dl>
 
-      <button
-        type="button"
-        className="mt-3 rounded-full border border-[#7a5a2f]/50 px-5 py-2 text-base hover:bg-[#7a5a2f]/10"
-        onClick={() => void navigator.clipboard.writeText(recordText())}
-      >
-        記録用にコピー（文字）
-      </button>
-      <p className="mt-1 text-xs text-[#5b4a33]">窓口の記録システムや用紙に、貼り付けて使えます。</p>
+        <div className="space-y-5">
+          {error && (
+            <Notice tone="warn" role="alert">
+              {error}
+            </Notice>
+          )}
 
-      {error && (
-        <p role="alert" className="mt-4 rounded-xl bg-amber-50 p-3 text-base">
-          {error}
-        </p>
-      )}
+          <section className="rounded-3xl border border-line bg-paper p-5 shadow-soft">
+            <StepHead n={1} title="読む" done />
+            <p className="mt-2 pl-12 text-sm leading-7 text-muted">手帳を、声に出して読んでください。</p>
+          </section>
 
-      <h2 className="mt-8 text-lg font-medium">本人に、読み返してください</h2>
-      <p className="text-sm text-[#5b4a33]">
-        上の内容を声に出して読み、本人の返事を記録します。
-      </p>
-      <div className="mt-3 flex flex-wrap gap-3">
-        <button type="button" className={btn} onClick={() => act("confirmed")}>
-          本人：合っている
-        </button>
-        <button type="button" className={btn} onClick={() => act("corrected")}>
-          本人：違う（訂正する）
-        </button>
+          <section className="rounded-3xl border border-line bg-paper p-5 shadow-soft">
+            <StepHead n={2} title="本人に確かめる" done={confirmed} />
+            <p className="mt-2 pl-12 text-sm leading-7 text-muted">読み返して、本人の返事を記録します。</p>
+            <div className="mt-4 flex flex-wrap gap-3 pl-12">
+              <Button onClick={() => act("confirmed")} disabled={confirmed}>
+                <IconCheck className="h-5 w-5" />
+                {confirmed ? "確認済み" : "本人：合っている"}
+              </Button>
+              <Button variant="quiet" onClick={() => act("corrected")}>
+                本人：違う（訂正する）
+              </Button>
+            </div>
+          </section>
+
+          <section className={`rounded-3xl border p-5 ${confirmed ? "border-line bg-paper shadow-soft" : "border-line bg-paper-2/60"}`}>
+            <StepHead n={3} title="次の相談先へ引き継ぐ" done={handedOff} locked={!confirmed} />
+            {confirmed ? (
+              <div className="mt-4 space-y-3 pl-12">
+                <label className="sr-only" htmlFor="to">
+                  引き継ぎ先
+                </label>
+                <select
+                  id="to"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none"
+                >
+                  {NEXT.map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
+                </select>
+                <Button onClick={() => act("handoff")} className="w-full">
+                  <IconSend className="h-5 w-5" />
+                  引き継ぐ
+                </Button>
+              </div>
+            ) : (
+              <p className="mt-2 pl-12 text-sm leading-7 text-muted">本人が「合っている」と答えた後に、使えるようになります。</p>
+            )}
+            <p className="mt-3 pl-12 text-xs leading-5 text-muted">※ 引き継ぎ先は例です。現時点では、実在の機関との提携や連携はありません。</p>
+          </section>
+        </div>
       </div>
 
-      <h2 className="mt-8 text-lg font-medium">次の相談先へ引き継ぐ</h2>
-      <div className="mt-3 flex flex-wrap gap-3">
-        <select
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          aria-label="引き継ぎ先"
-          className="rounded-xl border border-[#7a5a2f]/40 bg-white p-2 text-base"
-        >
-          {NEXT.map((n) => (
-            <option key={n}>{n}</option>
-          ))}
-        </select>
-        <button type="button" className={btn} onClick={() => act("handoff")}>
-          引き継ぐ
-        </button>
-      </div>
-      <p className="mt-2 text-sm text-[#5b4a33]">
-        ※ 窓口名は例です。現時点では、実在の窓口との提携や連携はありません。
-      </p>
-
-      <h2 className="mt-8 text-lg font-medium">経過の記録</h2>
-      <p className="text-sm text-[#5b4a33]">
-        記録の改ざん検知：{data.chain.ok ? "異常なし" : "異常あり"}（本文は記録に含みません）
-      </p>
-      <ol className="mt-2 space-y-1 text-base">
-        {data.log.map((e) => (
-          <li key={e.seq}>
-            {e.seq + 1}. {EVENT[e.type] ?? e.type}
-          </li>
-        ))}
-      </ol>
-    </section>
+      <section className="mt-12">
+        <h2 className="flex items-center gap-2 text-xl font-bold">
+          <IconEye className="h-5 w-5 text-wood" />
+          経過の記録
+        </h2>
+        <p className="mt-1 text-sm text-muted">本文は、記録に含まれません。</p>
+        <div className="mt-5">
+          <Timeline log={data.log} mode="window" />
+        </div>
+      </section>
+    </div>
   );
 }

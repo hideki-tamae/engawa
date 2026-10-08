@@ -1,23 +1,43 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   FIELD_KEYS,
   type FieldKey,
-  clearField,
-  joinItems,
   type InputMode,
   type ProblemCard,
+  clearField,
   confirmCard,
   createCard,
+  joinItems,
   setField,
   setShareScope,
 } from "@/lib/card";
-import { REFUSAL_MESSAGES, screenInput, type ScreenResult } from "@/lib/guardrails";
+import { REFUSAL_MESSAGES, type ScreenResult, screenInput } from "@/lib/guardrails";
 import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
-import Qr from "@/components/Qr";
 import HandbookCard from "@/components/HandbookCard";
+import Hero from "@/components/Hero";
+import Qr from "@/components/Qr";
+import Veranda from "@/components/Veranda";
+import {
+  IconArrow,
+  IconBack,
+  IconCheck,
+  IconCopy,
+  IconEye,
+  IconLink,
+  IconLock,
+  IconMic,
+  IconPaper,
+  IconPhone,
+  IconPrint,
+  IconShield,
+  IconSpark,
+  IconUndo,
+} from "@/components/icons";
+import { Button, Chip, Notice, StepDots, buttonClass } from "@/components/ui";
 
 const FIELD_LABEL: Record<FieldKey, string> = {
   when: "いつ頃",
@@ -25,8 +45,11 @@ const FIELD_LABEL: Record<FieldKey, string> = {
   what: "どんなこと",
   help: "してほしいこと",
 };
+const DEFAULT_ORDER: FieldKey[] = ["what", "help", "when", "where"];
+const FLOW_STEPS = ["書く", "質問", "確認", "見せ方"];
 
-type Step = "write" | "ask" | "confirm" | "scope" | "done";
+type Step = "welcome" | "write" | "ask" | "confirm" | "scope" | "done";
+const STEP_INDEX: Partial<Record<Step, number>> = { write: 0, ask: 1, confirm: 2, scope: 3 };
 
 interface SpeechRecognitionLike {
   lang: string;
@@ -47,11 +70,21 @@ function getRecognition(): SpeechRecognitionLike | null {
   return Ctor ? new Ctor() : null;
 }
 
-export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
-  const [step, setStep] = useState<Step>("write");
+function selectedFields(card: ProblemCard, onlyScope: boolean) {
+  return Object.fromEntries(
+    FIELD_KEYS.filter((k) => card.fields[k] && (!onlyScope || card.shareScope.includes(k))).map((k) => [
+      k,
+      { value: card.fields[k]!.value },
+    ]),
+  ) as Partial<Record<FieldKey, { value: string }>>;
+}
+
+export default function PersonFlow() {
+  const [step, setStep] = useState<Step>("welcome");
   const [text, setText] = useState("");
   const [voiceUsed, setVoiceUsed] = useState(false);
   const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [notice, setNotice] = useState<ScreenResult | null>(null);
   const [card, setCard] = useState<ProblemCard | null>(null);
   const rec = useRef<SpeechRecognitionLike | null>(null);
@@ -61,29 +94,41 @@ export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
   useEffect(() => {
     qiRef.current = qi;
   }, [qi]);
-  const DEFAULT_ORDER: FieldKey[] = ["what", "help", "when", "where"];
   // 質問の順序。最初の質問が決まったら固定する（途中で組み替えて、同じ質問を繰り返さないため）
   const [order, setOrder] = useState<FieldKey[]>(DEFAULT_ORDER);
+  const [picks, setPicks] = useState<Record<FieldKey, string[]>>({ when: [], where: [], what: [], help: [] });
+  const [own, setOwn] = useState<Record<FieldKey, string>>({ when: "", where: "", what: "", help: "" });
+  const [sealing, setSealing] = useState(false);
   const [link, setLink] = useState<string | null>(null);
   const [mineLink, setMineLink] = useState<string | null>(null);
   const [showLink, setShowLink] = useState<string | null>(null);
   const [proof, setProof] = useState<{ createdAt: string; code: string; url: string } | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [copyOpen, setCopyOpen] = useState(false);
+
+  function copy(key: string, value: string) {
+    void navigator.clipboard.writeText(value);
+    setCopied(key);
+    setTimeout(() => setCopied((c) => (c === key ? null : c)), 1600);
+  }
 
   async function publish(c: ProblemCard) {
+    setShareError(null);
     const r = await fetch("/api/cards", { method: "POST", body: JSON.stringify(c) });
-    const j = await r.json();
+    const j = await r.json().catch(() => ({}));
     if (!r.ok) {
-      setShareError("カードを渡す準備ができませんでした。");
+      setShareError("手帳を渡す準備ができませんでした。もう一度お試しください。");
       return;
     }
-    setLink(`${window.location.origin}/window/${j.token}`);
-    setMineLink(`${window.location.origin}/card/${j.token}`);
-    setShowLink(`${window.location.origin}/show/${j.token}`);
+    const o = window.location.origin;
+    setLink(`${o}/window/${j.token}`);
+    setMineLink(`${o}/card/${j.token}`);
+    setShowLink(`${o}/show/${j.token}`);
     setProof({
       createdAt: j.proof.createdAt,
       code: j.proof.code,
-      url: `${window.location.origin}/verify/${j.token}?code=${j.proof.code}`,
+      url: `${o}/verify/${j.token}?code=${j.proof.code}`,
     });
   }
 
@@ -110,13 +155,14 @@ export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
   }, [step, statementForAgent]);
 
   function toggleVoice() {
+    setVoiceError(null);
     if (listening) {
       rec.current?.stop();
       return;
     }
     const r = getRecognition();
     if (!r) {
-      alert("このブラウザでは音声入力が使えません。文字で書いてください。");
+      setVoiceError("このブラウザでは、話して入力が使えません。文字で書いてください。");
       return;
     }
     r.lang = "ja-JP";
@@ -134,6 +180,7 @@ export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
   }
 
   function submitStatement() {
+    rec.current?.stop();
     const result = screenInput(text);
     setNotice(result);
     if (result.verdict === "refuse") return;
@@ -146,19 +193,16 @@ export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
   }
 
   // 全ての質問は、複数選択できる。選んだもの＋自分の言葉を、まとめて1つの項目にする。
-  const [picks, setPicks] = useState<Record<FieldKey, string[]>>({ when: [], where: [], what: [], help: [] });
-  const [own, setOwn] = useState<Record<FieldKey, string>>({ when: "", where: "", what: "", help: "" });
-
   function sync(field: FieldKey, nextPicks: string[], nextOwn: string) {
     if (!card) return;
     setPicks((p) => ({ ...p, [field]: nextPicks }));
     setOwn((o) => ({ ...o, [field]: nextOwn }));
-    const text = joinItems([...nextPicks, nextOwn]);
-    if (!text) {
+    const joined = joinItems([...nextPicks, nextOwn]);
+    if (!joined) {
       setCard(clearField(card, field));
       return;
     }
-    setCard(setField(card, field, text, nextOwn.trim() ? "own_words" : "chosen_from_suggestion"));
+    setCard(setField(card, field, joined, nextOwn.trim() ? "own_words" : "chosen_from_suggestion"));
   }
 
   function togglePick(field: FieldKey, value: string) {
@@ -168,368 +212,585 @@ export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
 
   function toggleScope(k: FieldKey) {
     if (!card) return;
-    const next = card.shareScope.includes(k)
-      ? card.shareScope.filter((x) => x !== k)
-      : [...card.shareScope, k];
+    const next = card.shareScope.includes(k) ? card.shareScope.filter((x) => x !== k) : [...card.shareScope, k];
     setCard(setShareScope(card, next));
   }
 
-  const btn =
-    "rounded-full px-6 py-3 text-lg font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
-  const primary = `${btn} bg-[#7a5a2f] text-white hover:bg-[#654a26] disabled:opacity-40`;
-  const quiet = `${btn} border border-[#7a5a2f]/40 text-[#4a3a22] hover:bg-[#7a5a2f]/10`;
+  function confirmNow() {
+    setSealing(true);
+    setTimeout(() => {
+      setSealing(false);
+      setStep("scope");
+    }, 1100);
+  }
 
-  return (
-    <>
-      {step === "write" && intro}
-    <section className="mx-auto w-full max-w-xl px-5 py-10 text-[#2d2418]">
-      {notice && notice.verdict === "escalate" && (
-        <div role="alert" className="mb-6 rounded-2xl border border-red-300 bg-red-50 p-4 text-base print:hidden">
-          <p className="font-medium">いま危険が迫っているときは、先にここへ連絡してください。</p>
-          <ul className="mt-2 space-y-1">
-            {notice.resources.map((r) => (
-              <li key={r.contact}>
-                {r.label}：<span className="font-semibold">{r.contact}</span>
+  function restart() {
+    setLink(null);
+    setMineLink(null);
+    setShowLink(null);
+    setProof(null);
+    setCard(null);
+    setPicks({ when: [], where: [], what: [], help: [] });
+    setOwn({ when: "", where: "", what: "", help: "" });
+    setText("");
+    setNotice(null);
+    setCopyOpen(false);
+    setStep("welcome");
+  }
+
+  const today = new Date().toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
+  const stepIdx = STEP_INDEX[step];
+
+  /* ---------------- ようこそ ---------------- */
+  if (step === "welcome") {
+    return (
+      <div className="mx-auto w-full max-w-xl px-5 pb-16 pt-6">
+        <div className="anim-fade-up">
+          <Veranda className="h-auto w-full rounded-3xl shadow-soft" />
+          <h1 className="mt-8 text-[2.6rem] font-bold leading-tight tracking-tight text-ink">
+            Engawa
+            <span className="ml-2 text-2xl font-semibold text-wood">縁側</span>
+          </h1>
+          <p className="mt-3 text-[1.35rem] font-semibold leading-9 text-ink">
+            困りごとを、あなたの言葉のまま
+            <br />
+            持ち歩ける手帳。
+          </p>
+          <p className="mt-2 text-base leading-8 text-muted">窓口が変わっても、同じ話を一から説明し直さなくて済むように。</p>
+        </div>
+
+        <div className="anim-fade-up mt-8 [animation-delay:120ms]">
+          <Hero />
+        </div>
+
+        <div className="anim-fade-up mt-8 [animation-delay:200ms]">
+          <button
+            type="button"
+            onClick={() => setStep("write")}
+            className={buttonClass("primary", "w-full min-h-16 text-xl")}
+          >
+            はじめる
+            <IconArrow className="h-6 w-6" />
+          </button>
+          <ul className="mt-6 space-y-3">
+            {[
+              { icon: <IconShield className="h-6 w-6" />, t: "診断や評価はしません", d: "あなたの言葉を、そのまま整えるだけです。" },
+              { icon: <IconEye className="h-6 w-6" />, t: "見せる範囲は、あなたが決めます", d: "選んだ項目だけが、窓口に見えます。" },
+              { icon: <IconUndo className="h-6 w-6" />, t: "いつでも取り下げられます", d: "誰が見たかも、あなたに分かります。" },
+            ].map((x) => (
+              <li key={x.t} className="flex items-start gap-4 rounded-2xl bg-paper-2 p-4">
+                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-paper text-wood">{x.icon}</span>
+                <span>
+                  <span className="block text-base font-semibold">{x.t}</span>
+                  <span className="block text-sm leading-6 text-muted">{x.d}</span>
+                </span>
               </li>
             ))}
           </ul>
+          <p className="mt-6 text-center text-sm text-muted">
+            <Link href="/how" className="inline-flex min-h-11 items-center underline underline-offset-4">
+              仕組みの中身を見る
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------------- 完成 ---------------- */
+  if (step === "done" && card) {
+    const fields = selectedFields(card, true);
+    return (
+      <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-8">
+        <div className="print:hidden">
+          <div className="anim-fade-up text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ok-bg text-ok">
+              <IconCheck className="h-8 w-8" />
+            </span>
+            <h1 className="mt-4 text-3xl font-bold">手帳ができました</h1>
+            <p className="mt-2 text-base leading-8 text-muted">
+              あなたの言葉のまま、窓口に見せられます。
+              <br />
+              受け取るかどうかは、窓口によります。
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <HandbookCard
+              statement={card.statement}
+              fields={fields}
+              animateIn
+              animateStamp
+              stampDate={today}
+            />
+          </div>
+
+          {showLink && (
+            <a href={new URL(showLink).pathname} className={buttonClass("primary", "mt-8 w-full min-h-16 text-xl")}>
+              <IconPhone className="h-6 w-6" />
+              窓口に画面を見せる
+            </a>
+          )}
+          {shareError && (
+            <div className="mt-4">
+              <Notice tone="warn" role="alert">
+                {shareError}
+              </Notice>
+            </div>
+          )}
+
+          <h2 className="mt-10 text-lg font-bold text-ink">ほかの渡し方</h2>
+          <ul className="mt-3 space-y-3">
+            <li className="rounded-2xl border border-line bg-paper p-4">
+              <div className="flex items-center gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-paper-2 text-wood">
+                  <IconPaper className="h-6 w-6" />
+                </span>
+                <div className="flex-1">
+                  <p className="font-semibold">紙にして持っていく</p>
+                  <p className="text-sm leading-6 text-muted">日時・照合コード・QRつき。窓口の準備は要りません。</p>
+                </div>
+              </div>
+              <Button variant="quiet" className="mt-3 w-full" onClick={() => window.print()}>
+                <IconPrint className="h-5 w-5" />
+                印刷する（紙・PDF）
+              </Button>
+            </li>
+
+            <li className="rounded-2xl border border-line bg-paper p-4">
+              <div className="flex items-center gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-paper-2 text-wood">
+                  <IconCopy className="h-6 w-6" />
+                </span>
+                <div className="flex-1">
+                  <p className="font-semibold">窓口の用紙に書き写す</p>
+                  <p className="text-sm leading-6 text-muted">項目ごとにコピーして、貼り付けや書き写しに使えます。</p>
+                </div>
+              </div>
+              <Button variant="quiet" className="mt-3 w-full" onClick={() => setCopyOpen((v) => !v)} aria-expanded={copyOpen}>
+                {copyOpen ? "閉じる" : "項目ごとのコピーを開く"}
+              </Button>
+              {copyOpen && (
+                <ul className="mt-3 space-y-2">
+                  {[
+                    { k: "statement", label: "あなたの言葉", v: card.statement },
+                    ...FIELD_KEYS.filter((k) => card.fields[k] && card.shareScope.includes(k)).map((k) => ({
+                      k,
+                      label: FIELD_LABEL[k],
+                      v: card.fields[k]?.value ?? "",
+                    })),
+                  ].map((row) => (
+                    <li key={row.k} className="flex items-start justify-between gap-3 rounded-xl bg-paper-2 p-3">
+                      <span className="text-base leading-7">
+                        <span className="block text-xs text-muted">{row.label}</span>
+                        {row.v}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => copy(row.k, row.v)}
+                        className="shrink-0 rounded-full border-2 border-wood/40 px-3 py-1 text-sm font-semibold text-wood-dark hover:bg-paper"
+                      >
+                        {copied === row.k ? "コピーしました" : "コピー"}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+
+            {link && (
+              <li className="rounded-2xl border border-line bg-paper p-4">
+                <div className="flex items-center gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-paper-2 text-wood">
+                    <IconLink className="h-6 w-6" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-semibold">窓口に画面で見てもらう（リンク）</p>
+                    <p className="text-sm leading-6 text-muted">窓口は、ログインして、あなたが選んだ範囲だけを見ます。</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="quiet" className="flex-1" onClick={() => copy("window", link)}>
+                    {copied === "window" ? "コピーしました" : "リンクをコピー"}
+                  </Button>
+                  <a href={new URL(link).pathname} className={buttonClass("quiet", "flex-1")}>
+                    開く
+                  </a>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-muted">このリンクは、他の人には見せないでください。</p>
+              </li>
+            )}
+
+            {mineLink && (
+              <li className="rounded-2xl border border-line bg-paper p-4">
+                <div className="flex items-center gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-paper-2 text-wood">
+                    <IconEye className="h-6 w-6" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-semibold">誰が見たかを確かめる・取り下げる</p>
+                    <p className="text-sm leading-6 text-muted">あなただけのページです。ブックマークしておくと安心です。</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a href={new URL(mineLink).pathname} className={buttonClass("quiet", "flex-1")}>
+                    記録のページを開く
+                  </a>
+                  <Button variant="quiet" className="flex-1" onClick={() => copy("mine", mineLink)}>
+                    {copied === "mine" ? "コピーしました" : "リンクをコピー"}
+                  </Button>
+                </div>
+              </li>
+            )}
+          </ul>
+
+          <div className="mt-10 text-center">
+            <Button variant="ghost" onClick={restart}>
+              新しい手帳を作る
+            </Button>
+          </div>
+        </div>
+
+        {/* 印刷用（画面には出ない） */}
+        <div className="hidden print:block">
+          <h1 className="text-2xl font-semibold">困りごとの手帳（Engawa）</h1>
+          <p className="mt-1 text-sm">これは、本人が自分の言葉で書いたものです。診断や評価ではありません。</p>
+          <p className="mt-4 text-sm">本人の言葉</p>
+          <p className="text-lg leading-8">{card.statement}</p>
+          {FIELD_KEYS.filter((k) => card.fields[k] && card.shareScope.includes(k)).map((k) => (
+            <div key={k} className="mt-3">
+              <p className="text-sm">{FIELD_LABEL[k]}</p>
+              <p className="text-lg">{card.fields[k]?.value}</p>
+            </div>
+          ))}
+          {proof && (
+            <div className="mt-6 space-y-1 border-t pt-3 text-sm">
+              <p>作成日時：{new Date(proof.createdAt).toLocaleString("ja-JP")}（秒まで）</p>
+              <p>本人の確認：この内容で合っていると、本人が確認しました。</p>
+              <p>
+                照合コード：<span className="font-mono">{proof.code}</span>
+              </p>
+              <div className="mt-3 flex flex-wrap gap-6">
+                {link && <Qr value={link} label="窓口が画面で見る" />}
+                <Qr value={proof.url} label="紙が原本と同じか確かめる" />
+              </div>
+              {link && <p className="break-all">窓口が画面で見る（窓口のログインが必要）：{link}</p>}
+              <p className="break-all">この紙が原本と同じかを確かめる：{proof.url}</p>
+              <p className="mt-2">窓口の用紙に書ききれないときは、この紙を別紙としてお使いください。</p>
+              <p className="mt-4">署名（任意）：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</p>
+              <p className="text-xs">
+                ※ 照合は、紙が記録と同じ内容であることを示すもので、法的な証拠力を保証するものではありません。
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------------- 書く・質問・確認・見せ方 ---------------- */
+  const askField = order[Math.min(qi, order.length - 1)];
+  const fixed = followUpQuestions(createCard("tmp", "x", "text")).find((q) => q.field === askField)!;
+  const useAi = proposal?.field === askField;
+  const question = useAi && proposal ? proposal.question : fixed.question;
+  const lastQuestion = qi >= order.length - 1;
+
+  return (
+    <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-6">
+      <div className="mb-6 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={restart}
+          className="inline-flex min-h-11 items-center text-lg font-bold tracking-tight text-wood-dark"
+          aria-label="最初の画面にもどる"
+        >
+          Engawa <span className="text-sm font-semibold text-wood">縁側</span>
+        </button>
+      </div>
+      {stepIdx !== undefined && <StepDots steps={FLOW_STEPS} current={stepIdx} />}
+
+      {notice && notice.verdict === "escalate" && (
+        <div className="mb-6">
+          <Notice tone="warn" role="alert">
+            <p className="font-semibold">いま危険が迫っているときは、先にここへ連絡してください。</p>
+            <ul className="mt-2 space-y-1">
+              {notice.resources.map((r) => (
+                <li key={r.contact}>
+                  {r.label}：<span className="text-xl font-bold">{r.contact}</span>
+                </li>
+              ))}
+            </ul>
+          </Notice>
         </div>
       )}
       {notice && notice.verdict === "refuse" && (
-        <div role="alert" className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-base">
-          {notice.reasons
-            .filter((r) => r !== "emergency")
-            .map((r) => (
-              <p key={r}>{REFUSAL_MESSAGES[r as keyof typeof REFUSAL_MESSAGES]}</p>
-            ))}
+        <div className="mb-6">
+          <Notice tone="warn" role="alert">
+            {notice.reasons
+              .filter((r) => r !== "emergency")
+              .map((r) => (
+                <p key={r}>{REFUSAL_MESSAGES[r as keyof typeof REFUSAL_MESSAGES]}</p>
+              ))}
+          </Notice>
         </div>
       )}
 
       {step === "write" && (
-        <div>
-          <h2 className="text-2xl font-semibold">いま、困っていること</h2>
-          <p className="mt-2 text-base text-[#5b4a33]">
+        <div className="anim-fade-up">
+          <h1 className="text-3xl font-bold leading-snug">いま、困っていること</h1>
+          <p className="mt-2 text-base leading-8 text-muted">
             うまく書けなくても大丈夫です。一言でも、話すだけでも構いません。
-            お名前や連絡先は、書かなくて大丈夫です。
           </p>
+          <label htmlFor="statement" className="sr-only">
+            困っていること
+          </label>
           <textarea
+            id="statement"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={7}
-            aria-label="困っていること"
-            className="mt-5 w-full rounded-2xl border border-[#7a5a2f]/40 bg-white p-4 text-lg leading-8 focus:outline-2 focus:outline-[#7a5a2f]"
+            rows={6}
+            placeholder="たとえば「家賃が払えなくて、窓口で何度も同じ説明をしている」"
+            className="mt-5 w-full resize-none rounded-3xl border-2 border-line bg-white p-5 text-xl leading-9 text-ink shadow-soft placeholder:text-muted/50 focus:border-wood focus:outline-none"
           />
-          <p className="mt-2 text-sm text-[#5b4a33]">
-            音声は保存しません。文字に直した内容だけを使い、直せます。
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button type="button" onClick={toggleVoice} className={quiet}>
-              {listening ? "話すのをやめる" : "話して入力する"}
-            </button>
+
+          <div className="mt-4 flex items-center gap-4">
             <button
               type="button"
-              disabled={text.trim().length === 0}
-              onClick={submitStatement}
-              className={primary}
+              onClick={toggleVoice}
+              aria-pressed={listening}
+              className={`relative grid h-16 w-16 shrink-0 place-items-center rounded-full border-2 transition-colors ${
+                listening ? "anim-ring border-warn bg-warn text-paper" : "border-wood/45 bg-paper text-wood hover:bg-paper-2"
+              } focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-wood`}
+              aria-label={listening ? "話すのをやめる" : "話して入力する"}
             >
-              次へ
+              <IconMic className="h-7 w-7" />
             </button>
+            <div className="min-h-12 flex-1">
+              {listening ? (
+                <div className="flex items-center gap-3" aria-live="polite">
+                  <span className="anim-wave inline-flex h-7 items-center gap-1">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <span key={i} className="block h-7 w-1.5 origin-center rounded-full bg-warn" />
+                    ))}
+                  </span>
+                  <span className="text-base font-semibold text-warn">聞いています。もう一度押すと止まります。</span>
+                </div>
+              ) : (
+                <p className="text-base leading-7 text-muted">話して入力することもできます。</p>
+              )}
+            </div>
+          </div>
+          {voiceError && (
+            <div className="mt-3">
+              <Notice tone="info" role="alert">
+                {voiceError}
+              </Notice>
+            </div>
+          )}
+
+          <p className="mt-5 flex items-start gap-2 text-sm leading-6 text-muted">
+            <IconLock className="mt-1 h-4 w-4 shrink-0" />
+            声は保存しません。文字に直した内容だけを使い、あとで直せます。お名前や連絡先は、書かなくて大丈夫です。
+          </p>
+
+          <div className="mt-8 flex gap-3">
+            <Button variant="quiet" onClick={() => setStep("welcome")} aria-label="もどる">
+              <IconBack className="h-5 w-5" />
+            </Button>
+            <Button className="flex-1" disabled={text.trim().length === 0} onClick={submitStatement}>
+              次へ
+              <IconArrow className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       )}
 
-      {step === "ask" && card && (() => {
-        const field = order[Math.min(qi, order.length - 1)];
-        const fixed = followUpQuestions(createCard("tmp", "x", "text")).find((q) => q.field === field)!;
-        const useAi = proposal?.field === field;
-        const question = useAi && proposal ? proposal.question : fixed.question;
-        const last = qi >= order.length - 1;
-        return (
-          <div>
-            <p className="text-sm text-[#5b4a33]" aria-live="polite">
-              {qi + 1} / {order.length}
-            </p>
-            <blockquote className="mt-3 rounded-2xl bg-[#f3ead9] p-4 text-base leading-7">
-              {card.statement}
-            </blockquote>
-            <h2 className="mt-6 text-2xl font-semibold leading-9">{question}</h2>
-            <p className="mt-1 text-sm text-[#5b4a33]">いくつでも選べます。飛ばしても大丈夫です。</p>
+      {step === "ask" && card && (
+        <div className="anim-fade-up" key={askField}>
+          <p className="text-sm font-medium text-muted" aria-live="polite">
+            質問 {qi + 1} / {order.length}
+          </p>
+          <blockquote className="mt-3 rounded-2xl border-l-4 border-wood/60 bg-paper-2 p-4 text-base leading-8 text-ink">
+            {card.statement}
+          </blockquote>
+          <h1 className="mt-7 text-2xl font-bold leading-10">{question}</h1>
+          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+            <span>いくつでも選べます。飛ばしても大丈夫です。</span>
             {useAi && proposal?.source === "gemini" && (
-              <p className="mt-2 text-xs text-[#5b4a33]">この質問は、AI（Gemini）が選びました。</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-paper-2 px-2.5 py-0.5 text-xs font-medium text-wood-dark">
+                <IconSpark className="h-3.5 w-3.5" />
+                AI（Gemini）が選んだ質問
+              </span>
             )}
-            {useAi && proposal && proposal.suggestions.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm text-[#5b4a33]">あなたの言葉から。合っていれば、選んでください。</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {proposal.suggestions.map((sg) => (
-                    <button
-                      key={sg.text}
-                      type="button"
-                      aria-pressed={picks[sg.field].includes(sg.text)}
-                      onClick={() => togglePick(sg.field, sg.text)}
-                      className={`rounded-full border px-4 py-3 text-lg ${
-                        picks[sg.field].includes(sg.text)
-                          ? "border-[#7a5a2f] bg-[#7a5a2f] text-white"
-                          : "border-[#7a5a2f] hover:bg-[#7a5a2f]/10"
-                      }`}
-                    >
-                      「{sg.text}」
-                    </button>
-                  ))}
-                </div>
+          </p>
+
+          {useAi && proposal && proposal.suggestions.length > 0 && (
+            <div className="mt-5 rounded-2xl border border-wood/30 bg-paper p-4">
+              <p className="text-sm font-medium text-wood-dark">あなたの言葉から。合っていれば、選んでください。</p>
+              <div className="mt-3 flex flex-wrap gap-2.5">
+                {proposal.suggestions.map((sg) => (
+                  <Chip key={sg.text} pressed={picks[sg.field].includes(sg.text)} onClick={() => togglePick(sg.field, sg.text)}>
+                    「{sg.text}」
+                  </Chip>
+                ))}
               </div>
-            )}
-            <div className="mt-5 flex flex-wrap gap-3">
-              {fixed.options.map((o) => (
-                <button
-                  key={o}
-                  type="button"
-                  aria-pressed={picks[field].includes(o)}
-                  onClick={() => togglePick(field, o)}
-                  className={`rounded-full border px-5 py-3 text-lg ${
-                    picks[field].includes(o)
-                      ? "border-[#7a5a2f] bg-[#7a5a2f] text-white"
-                      : "border-[#7a5a2f]/40 hover:bg-[#7a5a2f]/10"
-                  }`}
-                >
-                  {o}
-                </button>
-              ))}
             </div>
-            <input
-              type="text"
-              aria-label={`${FIELD_LABEL[field]}（自分の言葉で）`}
-              placeholder="自分の言葉で書く"
-              value={own[field]}
-              onChange={(e) => sync(field, picks[field], e.target.value)}
-              className="mt-5 w-full rounded-xl border border-[#7a5a2f]/40 bg-white p-4 text-lg"
-            />
-            <div className="mt-8 flex gap-3">
-              <button
-                type="button"
-                onClick={() => (qi === 0 ? setStep("write") : setQi(qi - 1))}
-                className={quiet}
-              >
-                戻る
-              </button>
-              <button
-                type="button"
-                onClick={() => (last ? setStep("confirm") : setQi(qi + 1))}
-                className={primary}
-              >
-                {last ? "確認へ" : picks[field].length || own[field] ? "次へ" : "飛ばす"}
-              </button>
-            </div>
+          )}
+
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            {fixed.options.map((o) => (
+              <Chip key={o} pressed={picks[askField].includes(o)} onClick={() => togglePick(askField, o)}>
+                {o}
+              </Chip>
+            ))}
           </div>
-        );
-      })()}
+          <input
+            type="text"
+            aria-label={`${FIELD_LABEL[askField]}（自分の言葉で）`}
+            placeholder="自分の言葉で書く"
+            value={own[askField]}
+            onChange={(e) => sync(askField, picks[askField], e.target.value)}
+            className="mt-5 w-full rounded-2xl border-2 border-line bg-white p-4 text-lg placeholder:text-muted/50 focus:border-wood focus:outline-none"
+          />
+
+          <div className="mt-8 flex gap-3">
+            <Button variant="quiet" onClick={() => (qi === 0 ? setStep("write") : setQi(qi - 1))} aria-label="もどる">
+              <IconBack className="h-5 w-5" />
+            </Button>
+            <Button className="flex-1" onClick={() => (lastQuestion ? setStep("confirm") : setQi(qi + 1))}>
+              {lastQuestion ? "確認へ" : picks[askField].length || own[askField] ? "次へ" : "飛ばす"}
+              <IconArrow className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {step === "confirm" && card && (
-        <div>
-          <h2 className="text-2xl font-semibold">これで、合っていますか？</h2>
-          <p className="mt-2 text-base text-[#5b4a33]">
+        <div className="anim-fade-up">
+          <h1 className="text-3xl font-bold leading-snug">これで、合っていますか？</h1>
+          <p className="mt-2 text-base leading-8 text-muted">
             あなたの言葉のまま、まとめました。違うところは、戻って直せます。
           </p>
-          <dl className="mt-5 space-y-4 rounded-2xl bg-[#f3ead9] p-5">
-            <div>
-              <dt className="text-sm text-[#5b4a33]">あなたの言葉</dt>
-              <dd className="mt-1 text-lg leading-8">{card.statement}</dd>
-            </div>
-            {FIELD_KEYS.map((k) => (
-              <div key={k}>
-                <dt className="text-sm text-[#5b4a33]">{FIELD_LABEL[k]}</dt>
-                <dd className="mt-1 text-lg">{card.fields[k]?.value ?? "（今は書かなかった）"}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="mt-6">
+            <HandbookCard
+              statement={card.statement}
+              fields={selectedFields(card, false)}
+              draft={!sealing}
+              animateStamp={sealing}
+              stampDate={today}
+            />
+          </div>
           <div className="mt-8 flex gap-3">
-            <button type="button" onClick={() => { setQi(0); setStep("ask"); }} className={quiet}>
+            <Button
+              variant="quiet"
+              disabled={sealing}
+              onClick={() => {
+                setQi(0);
+                setStep("ask");
+              }}
+            >
               違う、直す
-            </button>
-            <button type="button" onClick={() => setStep("scope")} className={primary}>
+            </Button>
+            <Button className="flex-1" disabled={sealing} onClick={confirmNow}>
+              <IconCheck className="h-6 w-6" />
               合っている
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {step === "scope" && card && (
-        <div>
-          <h2 className="text-2xl font-semibold">窓口に伝える範囲を選んでください</h2>
-          <p className="mt-2 text-base text-[#5b4a33]">
-            あなたが選んだところだけが、窓口に渡ります。いつでも取り下げられます。
+        <div className="anim-fade-up">
+          <h1 className="text-3xl font-bold leading-snug">窓口に見せる範囲を選んでください</h1>
+          <p className="mt-2 text-base leading-8 text-muted">
+            選んだ項目だけが、窓口に見えます。あとから取り下げることもできます。
           </p>
-          <div className="mt-5 space-y-3">
-            <p className="rounded-xl border border-[#7a5a2f]/30 p-3 text-base">
-              ✔ あなたの言葉（これは必ず付きます）
-            </p>
-            {FIELD_KEYS.filter((k) => card.fields[k]).map((k) => (
-              <label key={k} className="flex items-center gap-3 rounded-xl border border-[#7a5a2f]/30 p-3 text-base">
-                <input
-                  type="checkbox"
-                  checked={card.shareScope.includes(k)}
-                  onChange={() => toggleScope(k)}
-                  className="h-5 w-5"
-                />
-                {FIELD_LABEL[k]}：{card.fields[k]?.value}
-              </label>
-            ))}
+
+          <ul className="mt-6 space-y-3">
+            <li className="flex items-center gap-4 rounded-2xl border border-line bg-paper-2 p-4">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paper text-wood">
+                <IconLock className="h-5 w-5" />
+              </span>
+              <span className="flex-1">
+                <span className="block text-xs text-muted">あなたの言葉</span>
+                <span className="text-base font-semibold">必ず付きます</span>
+              </span>
+            </li>
+            {DEFAULT_ORDER.filter((k) => card.fields[k]).map((k) => {
+              const on = card.shareScope.includes(k);
+              return (
+                <li key={k}>
+                  <label
+                    className={`flex cursor-pointer items-center gap-4 rounded-2xl border-2 p-4 transition-colors ${
+                      on ? "border-wood bg-paper" : "border-line bg-paper-2/60"
+                    } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-wood`}
+                  >
+                    <input type="checkbox" className="peer sr-only" checked={on} onChange={() => toggleScope(k)} />
+                    <span
+                      aria-hidden
+                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 transition-colors ${
+                        on ? "border-wood bg-wood text-paper" : "border-line bg-white text-transparent"
+                      }`}
+                    >
+                      <IconCheck className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1">
+                      <span className="block text-xs text-muted">{FIELD_LABEL[k]}</span>
+                      <span className="block text-base leading-7">{card.fields[k]?.value}</span>
+                    </span>
+                    <span className={`text-sm font-medium ${on ? "text-wood-dark" : "text-muted"}`}>{on ? "見せる" : "見せない"}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mt-4 flex gap-2">
+            <Button
+              variant="ghost"
+              className="min-h-11 px-2 text-base"
+              onClick={() => setCard(setShareScope(card, FIELD_KEYS.filter((k) => card.fields[k])))}
+            >
+              すべて選ぶ
+            </Button>
+            <Button variant="ghost" className="min-h-11 px-2 text-base" onClick={() => setCard(setShareScope(card, []))}>
+              すべて外す
+            </Button>
           </div>
+
+          <p className="mt-6 text-sm font-medium text-muted">窓口には、こう見えます</p>
+          <div className="mt-2">
+            <HandbookCard
+              statement={card.statement}
+              fields={selectedFields(card, true)}
+              stamp={false}
+              draft
+            />
+          </div>
+
           <div className="mt-8 flex gap-3">
-            <button type="button" onClick={() => setStep("confirm")} className={quiet}>
-              戻る
-            </button>
-            <button
-              type="button"
+            <Button variant="quiet" onClick={() => setStep("confirm")} aria-label="もどる">
+              <IconBack className="h-5 w-5" />
+            </Button>
+            <Button
+              className="flex-1"
               disabled={card.shareScope.length === 0}
               onClick={() => {
-                const confirmed = confirmCard(card);
-                setCard(confirmed);
+                const c = confirmCard(card);
+                setCard(c);
                 setStep("done");
-                void publish(confirmed);
+                void publish(c);
               }}
-              className={primary}
             >
-              このカードを作る
-            </button>
+              手帳を作る
+              <IconArrow className="h-5 w-5" />
+            </Button>
           </div>
           {card.shareScope.length === 0 && (
-            <p className="mt-3 text-sm text-[#5b4a33]">
-              1つ以上選ぶと、進めます。選ばないままだと、何も渡りません。
-            </p>
+            <p className="mt-3 text-sm leading-6 text-muted">1つ以上選ぶと、進めます。選ばないままだと、何も渡りません。</p>
           )}
         </div>
       )}
-
-      {step === "done" && card && (
-        <div>
-          <div className="print:hidden">
-            <h2 className="text-2xl font-semibold">手帳ができました</h2>
-            <div className="mt-4">
-              <HandbookCard
-                statement={card.statement}
-                fields={Object.fromEntries(
-                  FIELD_KEYS.filter((k) => card.fields[k] && card.shareScope.includes(k)).map((k) => [k, { value: card.fields[k]!.value }]),
-                )}
-              />
-            </div>
-            <p className="mt-2 text-base text-[#5b4a33]">
-              これは、あなたの困りごとを、あなたの言葉のまま持ち歩ける手帳です。窓口で、同じ話を最初から説明し直す手間を、減らすためのものです。
-              窓口が受け取るかどうかは、窓口によります。
-            </p>
-            <h3 className="mt-6 text-lg font-medium">使い方（4つ）</h3>
-            <ol className="mt-2 list-decimal space-y-2 pl-6 text-base leading-7">
-              <li>
-                <span className="font-medium">あなたの携帯の画面を、そのまま見せる。</span>
-                下の「窓口に画面を見せる」を開くと、大きな文字で表示されます。窓口の設備は、関係ありません。
-              </li>
-              <li>
-                <span className="font-medium">紙にして持っていく。</span>
-                下の「印刷する（紙・PDF）」で、窓口に出せる1枚になります。窓口が、特別な準備をしなくても使えます。
-              </li>
-              <li>
-                <span className="font-medium">窓口が画面で見られる場合は、リンクを渡す。</span>
-                窓口は、専用の画面にログインして、あなたが選んだ範囲だけを見ます。
-              </li>
-              <li>
-                <span className="font-medium">あなたは、いつでも確認・取り下げができる。</span>
-                誰がいつ開いたかも、見られます。
-              </li>
-            </ol>
-            <h3 className="mt-6 text-lg font-medium">窓口の用紙に書き写すとき</h3>
-            <p className="mt-1 text-sm text-[#5b4a33]">
-              窓口の用紙は、窓口ごとに様式が違います。項目ごとにコピーできるので、貼り付けや書き写しに使ってください。
-            </p>
-            <ul className="mt-2 space-y-2">
-              {[
-                { k: "statement", label: "あなたの言葉", v: card.statement },
-                ...FIELD_KEYS.filter((k) => card.fields[k] && card.shareScope.includes(k)).map((k) => ({
-                  k,
-                  label: FIELD_LABEL[k],
-                  v: card.fields[k]?.value ?? "",
-                })),
-              ].map((row) => (
-                <li key={row.k} className="flex items-start justify-between gap-3 rounded-xl border border-[#7a5a2f]/30 p-3">
-                  <span className="text-base">
-                    <span className="block text-sm text-[#5b4a33]">{row.label}</span>
-                    {row.v}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => void navigator.clipboard.writeText(row.v)}
-                    className="shrink-0 rounded-full border border-[#7a5a2f]/50 px-3 py-1 text-sm hover:bg-[#7a5a2f]/10"
-                  >
-                    コピー
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {showLink && (
-              <a href={new URL(showLink).pathname} className={`${primary} mt-6 inline-block`}>
-                窓口に画面を見せる
-              </a>
-            )}
-            <button type="button" onClick={() => window.print()} className={`${quiet} mt-6 ml-3`}>
-              印刷する（紙・PDF）
-            </button>
-            {shareError && <p role="alert" className="mt-3 text-base">{shareError}</p>}
-            {link && (
-              <div className="mt-6 rounded-2xl bg-[#f3ead9] p-4 text-base">
-                <p className="font-medium">窓口に画面で見せるときのリンク</p>
-                <a href={new URL(link).pathname} className="mt-1 block break-all underline">{link}</a>
-                <button type="button" onClick={() => void navigator.clipboard.writeText(link)} className="mt-1 rounded-full border border-[#7a5a2f]/50 px-3 py-1 text-sm hover:bg-[#7a5a2f]/10">リンクをコピー</button>
-                {mineLink && (
-                  <>
-                    <p className="mt-4 font-medium">あなたが、誰が見たかを確認したり、取り下げたりするページ</p>
-                    <a href={new URL(mineLink).pathname} className="mt-1 block break-all underline">{mineLink}</a>
-                    <button type="button" onClick={() => void navigator.clipboard.writeText(mineLink)} className="mt-1 rounded-full border border-[#7a5a2f]/50 px-3 py-1 text-sm hover:bg-[#7a5a2f]/10">リンクをコピー</button>
-                  </>
-                )}
-                <p className="mt-4 text-sm text-[#5b4a33]">
-                  このリンクを知っている人は、窓口のログインがあれば、カードを開けます。他の人には見せないでください。
-                </p>
-              </div>
-            )}
-            <button type="button" onClick={() => { setLink(null); setMineLink(null); setShowLink(null); setProof(null); setCard(null); setPicks({ when: [], where: [], what: [], help: [] }); setOwn({ when: "", where: "", what: "", help: "" }); setText(""); setNotice(null); setStep("write"); }} className={`${quiet} mt-8`}>
-              新しく作る
-            </button>
-          </div>
-
-          <div className="hidden print:block">
-            <h2 className="text-2xl font-semibold">困りごとの手帳（Engawa）</h2>
-            <p className="mt-1 text-sm">
-              これは、本人が自分の言葉で書いたものです。診断や評価ではありません。
-            </p>
-            <p className="mt-4 text-sm">本人の言葉</p>
-            <p className="text-lg leading-8">{card.statement}</p>
-            {FIELD_KEYS.filter((k) => card.fields[k] && card.shareScope.includes(k)).map((k) => (
-              <div key={k} className="mt-3">
-                <p className="text-sm">{FIELD_LABEL[k]}</p>
-                <p className="text-lg">{card.fields[k]?.value}</p>
-              </div>
-            ))}
-            {proof && (
-              <div className="mt-6 space-y-1 border-t pt-3 text-sm">
-                <p>作成日時：{new Date(proof.createdAt).toLocaleString("ja-JP")}（秒まで）</p>
-                <p>本人の確認：この内容で合っていると、本人が確認しました。</p>
-                <p>照合コード：<span className="font-mono">{proof.code}</span></p>
-                <div className="mt-3 flex flex-wrap gap-6">
-                  {link && <Qr value={link} label="窓口が画面で見る" />}
-                  <Qr value={proof.url} label="紙が原本と同じか確かめる" />
-                </div>
-                {link && <p className="break-all">窓口が画面で見る（窓口のログインが必要）：{link}</p>}
-                <p className="break-all">この紙が原本と同じかを確かめる：{proof.url}</p>
-                <p className="mt-2">窓口の用紙に書ききれないときは、この紙を別紙としてお使いください。</p>
-                <p className="mt-4">署名（任意）：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</p>
-                <p className="text-xs">
-                  ※ 照合は、紙が記録と同じ内容であることを示すもので、法的な証拠力を保証するものではありません。
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </section>
-    </>
+    </div>
   );
 }

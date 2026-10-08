@@ -5,7 +5,7 @@ export default async function VerifyPage({ params, searchParams }: PageProps<"/v
   const sp = await searchParams;
   const code = typeof sp.code === "string" ? sp.code : "";
   return (
-    <main className="flex-1 bg-[#fbf6ec]">
+    <main id="main" className="flex-1">
       <PaperVerify token={token} code={code} />
     </main>
   );

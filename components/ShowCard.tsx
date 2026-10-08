@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import HandbookCard from "@/components/HandbookCard";
 import type { SharedView } from "@/lib/handoff";
+import { Notice } from "@/components/ui";
 
 /** 本人の携帯を窓口に向けて見せる画面。ログイン不要（本人の端末で開くため）。大きな文字、余計な操作なし。 */
 export default function ShowCard({ token }: { token: string }) {
@@ -23,13 +24,30 @@ export default function ShowCard({ token }: { token: string }) {
     };
   }, [token]);
 
-  if (missing) return <p className="p-6 text-2xl">カードが見つかりません。</p>;
-  if (!data) return <p className="p-6 text-2xl">読み込み中…</p>;
-  if (data.withdrawn) return <p className="p-6 text-2xl">このカードは、取り下げられています。</p>;
+  if (missing)
+    return (
+      <div className="p-6">
+        <Notice tone="info" role="alert">
+          手帳が見つかりません。
+        </Notice>
+      </div>
+    );
+  if (!data) return <p className="p-6 text-2xl text-muted">読み込んでいます…</p>;
+  if (data.withdrawn)
+    return (
+      <div className="p-6">
+        <Notice tone="warn" role="status">
+          この手帳は、取り下げられています。
+        </Notice>
+      </div>
+    );
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-6">
       <HandbookCard statement={data.view.statement} fields={data.view.fields} large />
+      <p className="mt-6 text-center text-base leading-8 text-muted">
+        お手数ですが、この内容を読んでから、お話を聞いてください。
+      </p>
     </section>
   );
 }
