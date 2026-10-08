@@ -39,6 +39,7 @@ import {
   IconUndo,
 } from "@/components/icons";
 import { Button, Chip, Notice, StepDots, buttonClass } from "@/components/ui";
+import { STT_MAX_SECONDS, blobTo16kPcmBase64 } from "@/lib/audio";
 import { initTrial, track, useTrialMode } from "@/lib/trial-client";
 
 const FIELD_LABEL: Record<FieldKey, string> = {
@@ -219,12 +220,20 @@ export default function PersonFlow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, statementForAgent]);
 
-  function toggleVoice() {
-    setVoiceError(null);
-    if (listening) {
-      rec.current?.stop();
-      return;
-    }
+  // 話して入力：録音して、Google Cloud の Speech-to-Text で文字に直す。音声は保存しない。
+  // 録音が使えない環境では、ブラウザ標準の音声認識に切り替える。
+  const recorder = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<Blob[]>([]);
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+
+  function stopRecording() {
+    const mr = recorder.current;
+    if (mr && mr.state !== "inactive") mr.stop();
+    rec.current?.stop();
+  }
+
+  function startWebSpeech() {
     const r = getRecognition();
     if (!r) {
       setVoiceError("このブラウザでは、話して入力が使えません。文字で書いてください。");
@@ -244,8 +253,59 @@ export default function PersonFlow() {
     r.start();
   }
 
+  async function toggleVoice() {
+    setVoiceError(null);
+    if (listening) {
+      stopRecording();
+      return;
+    }
+    if (transcribing) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      startWebSpeech();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunks.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.current.push(e.data);
+      };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        if (stopTimer.current) clearTimeout(stopTimer.current);
+        setListening(false);
+        const blob = new Blob(chunks.current, { type: mr.mimeType });
+        chunks.current = [];
+        if (blob.size === 0) return;
+        setTranscribing(true);
+        try {
+          const { base64 } = await blobTo16kPcmBase64(blob);
+          const r = await fetch("/api/stt", { method: "POST", body: JSON.stringify({ audio: base64 }) });
+          const j = (await r.json().catch(() => ({}))) as { text?: string; error?: string };
+          if (!r.ok) throw new Error(j.error ?? "stt");
+          if (j.text) setText((prev) => prev + j.text);
+          else setVoiceError("うまく聞き取れませんでした。もう一度、ゆっくり話してみてください。");
+        } catch {
+          setVoiceError("文字に直せませんでした。もう一度お試しいただくか、文字で書いてください。");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      recorder.current = mr;
+      setVoiceUsed(true);
+      setListening(true);
+      mr.start();
+      stopTimer.current = setTimeout(() => {
+        if (mr.state !== "inactive") mr.stop();
+      }, STT_MAX_SECONDS * 1000);
+    } catch {
+      setVoiceError("マイクが使えませんでした。ブラウザの設定で、マイクを許可してください。文字で書くこともできます。");
+    }
+  }
+
   function submitStatement() {
-    rec.current?.stop();
+    stopRecording();
     const result = screenInput(text);
     setNotice(result);
     if (result.verdict === "refuse") return;
@@ -681,6 +741,7 @@ export default function PersonFlow() {
               type="button"
               onClick={toggleVoice}
               aria-pressed={listening}
+              disabled={transcribing}
               className={`relative grid h-16 w-16 shrink-0 place-items-center rounded-full border-2 transition-colors ${
                 listening ? "anim-ring border-warn bg-warn text-paper" : "border-wood/45 bg-paper text-wood hover:bg-paper-2"
               } focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-wood`}
@@ -698,8 +759,12 @@ export default function PersonFlow() {
                   </span>
                   <span className="text-base font-semibold text-warn">聞いています。もう一度押すと止まります。</span>
                 </div>
+              ) : transcribing ? (
+                <p className="text-base font-semibold leading-7 text-wood-dark" role="status" aria-live="polite">
+                  文字に直しています…
+                </p>
               ) : (
-                <p className="text-base leading-7 text-muted">話して入力することもできます。</p>
+                <p className="text-base leading-7 text-muted">話して入力することもできます。（1回、55秒まで）</p>
               )}
             </div>
           </div>

@@ -8,7 +8,7 @@ import { type Generate, geminiGenerate } from "./agent";
  */
 let cached: { token: string; exp: number } | null = null;
 
-async function accessToken(): Promise<string> {
+export async function accessToken(): Promise<string> {
   if (process.env.VERTEX_ACCESS_TOKEN) return process.env.VERTEX_ACCESS_TOKEN;
   if (cached && cached.exp > Date.now() + 60_000) return cached.token;
   const r = await fetch(
