@@ -1,4 +1,5 @@
 import { type Generate, geminiGenerate } from "./agent";
+import type { GenerateGrounded } from "./finder";
 
 /**
  * 呼び出し先の選択。
@@ -81,6 +82,42 @@ export function vertexGroundedGenerate(project: string, model = "gemini-2.5-flas
     const parts = j.candidates?.[0]?.content?.parts ?? [];
     return parts.filter((x) => !x.thought).map((x) => x.text ?? "").join("");
   };
+}
+
+/** 上と同じ呼び出しで、根拠として返ったページ（サイト名と転送用URL）も一緒に返す。 */
+export function vertexGroundedWithSources(project: string, model = "gemini-2.5-flash"): GenerateGrounded {
+  return async (system, user) => {
+    const token = await accessToken();
+    const res = await fetch(
+      `https://aiplatform.googleapis.com/v1beta1/projects/${project}/locations/global/publishers/google/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents: [{ role: "user", parts: [{ text: user }] }],
+          tools: [{ googleSearch: {} }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1200, thinkingConfig: { thinkingBudget: 0 } },
+        }),
+        signal: AbortSignal.timeout(25_000),
+      },
+    );
+    if (!res.ok) throw new Error(`vertex-grounded ${res.status}`);
+    const j = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] }; groundingMetadata?: { groundingChunks?: { web?: { title?: string; uri?: string } }[] } }[];
+    };
+    const c = j.candidates?.[0];
+    const text = (c?.content?.parts ?? []).filter((x) => !x.thought).map((x) => x.text ?? "").join("");
+    const sources = (c?.groundingMetadata?.groundingChunks ?? [])
+      .map((k) => ({ title: k.web?.title ?? "", uri: k.web?.uri ?? "" }))
+      .filter((k) => k.title && k.uri);
+    return { text, sources };
+  };
+}
+
+export function pickGroundedWithSources(): GenerateGrounded | null {
+  const project = process.env.VERTEX_PROJECT;
+  return project ? vertexGroundedWithSources(project, process.env.VERTEX_MODEL ?? "gemini-2.5-flash") : null;
 }
 
 export function pickGroundedGenerate(): Generate | null {

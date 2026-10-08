@@ -111,3 +111,46 @@ describe("探して、確かめる", () => {
     expect(await fetchOfficialPage("https://metadata.google.internal/")).toBeNull();
   });
 });
+
+describe("検索の根拠のページから、リンクを取り戻す", () => {
+  const sourcePages: Record<string, { ok: boolean; status: number; text: string }> = {
+    "https://www.city.example.lg.jp/soudan/": { ok: true, status: 200, text: "生活困窮者自立相談支援窓口のご案内。住居確保給付金の相談を受け付けます。" },
+  };
+  const grounded = async () => ({
+    text: "```json\n" + JSON.stringify([{ name: "生活困窮者自立相談支援窓口", kind: "行政", what: "お金の相談", url: "https://www.city.example.lg.jp/old.html" }]) + "\n```",
+    sources: [
+      { title: "example.com", uri: "https://vertexaisearch.cloud.google.com/grounding-api-redirect/EVIL" },
+      { title: "city.example.lg.jp", uri: "https://vertexaisearch.cloud.google.com/grounding-api-redirect/OK1" },
+    ],
+  });
+  const resolveSource = async (uri: string) => (uri.endsWith("OK1") ? "https://www.city.example.lg.jp/soudan/" : "https://example.com/");
+  const fp = async (u: string) => sourcePages[u] ?? pages[u] ?? null;
+
+  it("AIの書いたURLが404でも、根拠のページが名前と合えば、確認済みにする", async () => {
+    const r = await findWindows(base, { generate: null, generateGrounded: grounded, resolveSource, fetchPage: fp });
+    expect(r.ok && r.candidates[0].verified).toBe(true);
+    expect(r.ok && r.candidates[0].url).toBe("https://www.city.example.lg.jp/soudan/");
+  });
+  it("公的でないドメインの根拠は、開かない", async () => {
+    let opened = 0;
+    const r = await findWindows(base, {
+      generate: null,
+      generateGrounded: grounded,
+      resolveSource: async (uri) => {
+        opened++;
+        return resolveSource(uri);
+      },
+      fetchPage: fp,
+    });
+    expect(opened).toBe(1); // example.com の根拠は、解決もしない
+    expect(r.ok).toBe(true);
+  });
+  it("名前と合わないページでは、確認済みにしない", async () => {
+    const mismatch = async () => ({
+      text: "```json\n" + JSON.stringify([{ name: "ごみ収集センター", kind: "行政", what: "お金の相談", url: "" }]) + "\n```",
+      sources: [{ title: "city.example.lg.jp", uri: "https://vertexaisearch.cloud.google.com/grounding-api-redirect/OK1" }],
+    });
+    const r = await findWindows(base, { generate: null, generateGrounded: mismatch, resolveSource, fetchPage: fp });
+    expect(r.ok && r.candidates[0].verified).toBe(false);
+  });
+});

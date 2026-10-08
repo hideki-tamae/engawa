@@ -1,5 +1,5 @@
 import { fetchOfficialPage, findWindows, validateInput } from "@/lib/finder";
-import { pickGroundedGenerate } from "@/lib/llm";
+import { pickGroundedWithSources } from "@/lib/llm";
 import { logEvent } from "@/lib/log";
 import { allow, clientKey } from "@/lib/ratelimit";
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (!v.ok) return Response.json({ error: "invalid" }, { status: 422 });
 
   const t0 = Date.now();
-  const out = await findWindows(v.value, { generate: pickGroundedGenerate(), fetchPage: fetchOfficialPage });
+  const out = await findWindows(v.value, { generate: null, generateGrounded: pickGroundedWithSources(), fetchPage: fetchOfficialPage });
   if (!out.ok) {
     logEvent("find_windows", { ok: false, reason: out.reason, latency_ms: Date.now() - t0 }, "WARNING");
     return Response.json({ error: out.reason }, { status: out.reason === "no_model" ? 503 : 502 });

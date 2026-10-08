@@ -31,6 +31,9 @@ export interface Candidate {
 export type FindOutcome = { ok: true; candidates: Candidate[]; checkedAt: string } | { ok: false; reason: "invalid_input" | "no_model" | "model_failed" };
 
 export type Generate = (system: string, user: string) => Promise<string>;
+export interface Source { title: string; uri: string }
+export type GenerateGrounded = (system: string, user: string) => Promise<{ text: string; sources: Source[] }>;
+export type ResolveSource = (uri: string) => Promise<string | null>;
 export type FetchPage = (url: string) => Promise<{ ok: boolean; status: number; text: string } | null>;
 
 const KINDS = ["市区町村", "都道府県", "国"] as const;
@@ -119,23 +122,28 @@ export function parseCandidates(text: string): { name: string; kind: string; wha
 }
 
 /** 名前の3文字ずつの並びが、ページの中に2つ以上あれば、合っているとみなす。 */
-export function nameMatchesPage(name: string, pageText: string): boolean {
+export function nameMatchesPage(name: string, pageText: string, min = 2): boolean {
   const n = name.replace(/[\s　（）()「」]/g, "");
   const grams = new Set<string>();
   for (let i = 0; i + 3 <= n.length; i++) grams.add(n.slice(i, i + 3));
   let hit = 0;
   for (const g of grams) if (pageText.includes(g)) hit++;
-  return hit >= 2;
+  return hit >= min;
 }
 
 export async function findWindows(
   input: FinderInput,
-  deps: { generate: Generate | null; fetchPage: FetchPage; now?: () => Date },
+  deps: { generate: Generate | null; generateGrounded?: GenerateGrounded | null; resolveSource?: ResolveSource; fetchPage: FetchPage; now?: () => Date },
 ): Promise<FindOutcome> {
-  if (!deps.generate) return { ok: false, reason: "no_model" };
+  if (!deps.generate && !deps.generateGrounded) return { ok: false, reason: "no_model" };
   let raw: string;
+  let sources: Source[] = [];
   try {
-    raw = await deps.generate(SYSTEM, buildPrompt(input));
+    if (deps.generateGrounded) {
+      const g = await deps.generateGrounded(SYSTEM, buildPrompt(input));
+      raw = g.text;
+      sources = g.sources;
+    } else raw = await deps.generate!(SYSTEM, buildPrompt(input));
   } catch {
     return { ok: false, reason: "model_failed" };
   }
@@ -161,8 +169,44 @@ export async function findWindows(
       results[idx] = cand;
     }),
   );
+  // AIが書いたURLで確認できなかった候補は、検索の根拠として返ったページ（実在する）から探す
+  const pool = await loadSourcePages(sources, deps.resolveSource ?? resolveGroundingRedirect, deps.fetchPage);
+  if (pool.length) {
+    for (let i = 0; i < results.length; i++) {
+      const cand = results[i];
+      if (!cand || cand.verified) continue;
+      const hit = pool.find((p) => nameMatchesPage(cand.name, p.text, 3));
+      if (hit) results[i] = { ...cand, url: hit.url, verified: true, reason: undefined, status: undefined, searchUrl: undefined };
+    }
+  }
   const ordered = results.filter(Boolean).sort((a, b) => Number(b.verified) - Number(a.verified)).slice(0, 3);
   return { ok: true, candidates: ordered, checkedAt: (deps.now?.() ?? new Date()).toISOString() };
+}
+
+const REDIRECT_PREFIX = "https://vertexaisearch.cloud.google.com/grounding-api-redirect/";
+
+/** 検索の根拠として返る転送用URLから、転送先（公的なドメインだけ）を取り出す。転送用URL以外は、開かない。 */
+export const resolveGroundingRedirect: ResolveSource = async (uri) => {
+  if (!uri.startsWith(REDIRECT_PREFIX)) return null;
+  const res = await fetch(uri, { redirect: "manual", signal: AbortSignal.timeout(5000) });
+  const loc = res.headers.get("location");
+  const u = loc ? safeUrl(new URL(loc, uri).toString()) : null;
+  return u ? u.toString() : null;
+};
+
+/** 根拠のページのうち、公的なドメインで、実際に開けて、中身が読めたものだけを集める（最大8件）。 */
+async function loadSourcePages(sources: Source[], resolve: ResolveSource, fetchPage: FetchPage): Promise<{ url: string; text: string }[]> {
+  const cand = sources.filter((x) => isAllowedHost(x.title)).slice(0, 8);
+  const pages = await Promise.all(
+    cand.map(async (x) => {
+      const url = await resolve(x.uri).catch(() => null);
+      if (!url) return null;
+      const page = await fetchPage(url).catch(() => null);
+      return page?.ok ? { url, text: page.text } : null;
+    }),
+  );
+  const seen = new Set<string>();
+  return pages.filter((p): p is { url: string; text: string } => !!p && !seen.has(p.url) && !!seen.add(p.url));
 }
 
 /** 実際にページを開く。公的なドメインの https だけ。転送先も確かめる。小さく、短く。 */
