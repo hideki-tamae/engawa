@@ -1,5 +1,6 @@
 import type { ProblemCard } from "@/lib/card";
 import { proposeNext } from "@/lib/agent";
+import { pickGuard } from "@/lib/armor";
 import { pickGenerate } from "@/lib/llm";
 import { logEvent } from "@/lib/log";
 import { LIMITS, allow, clientKey } from "@/lib/ratelimit";
@@ -21,12 +22,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "statement_invalid" }, { status: 422 });
   }
   const t0 = Date.now();
-  const proposal = await proposeNext(card, pickGenerate());
+  const proposal = await proposeNext(card, pickGenerate(), pickGuard());
   logEvent("agent_proposal", {
     source: proposal?.source ?? "none",
     field: proposal?.field ?? "none",
     suggestions: proposal?.suggestions.length ?? 0,
     dropped: proposal?.dropped ?? 0,
+    armor: proposal?.armor ?? "off",
     latency_ms: Date.now() - t0,
   }, proposal?.source === "fallback" ? "WARNING" : "INFO");
   return Response.json({ proposal });

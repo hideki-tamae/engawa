@@ -1,3 +1,4 @@
+import type { Guard } from "./armor";
 import { type FieldKey, FIELD_KEYS, type ProblemCard, missingFields } from "./card";
 import { screenInput, screenRequest } from "./guardrails";
 import { type Suggestion, followUpQuestions, validateSuggestion } from "./suggestions";
@@ -17,6 +18,8 @@ export interface AgentProposal {
   /** gemini: モデルの出力を検証して採用 / fallback: 固定の文面 */
   source: "gemini" | "fallback";
   dropped: number;
+  /** Model Armor の結果（未設定なら省略） */
+  armor?: "ok" | "flagged" | "unavailable";
 }
 
 export type Generate = (system: string, user: string) => Promise<string>;
@@ -31,21 +34,33 @@ const SYSTEM = `あなたは、困りごとを本人の言葉のまま整理す�
 export async function proposeNext(
   card: ProblemCard,
   generate: Generate | null,
+  guard?: Guard | null,
 ): Promise<AgentProposal | null> {
   const missing = missingFields(card);
   if (missing.length === 0) return null;
+  let armor: AgentProposal["armor"];
   const fallback = (): AgentProposal => {
     const f = followUpQuestions(card)[0];
-    return { field: f.field, question: f.question, suggestions: [], source: "fallback", dropped: 0 };
+    return { field: f.field, question: f.question, suggestions: [], source: "fallback", dropped: 0, armor };
   };
   if (!generate) return fallback();
   if (screenInput(card.statement).verdict === "refuse") return fallback();
+  // AIに渡す前に、攻撃文が混ざっていないか調べる。引っかかったら、AIに渡さず固定の質問に戻す（本人の言葉は、そのまま）
+  if (guard) {
+    armor = await guard.prompt(card.statement);
+    if (armor === "flagged") return fallback();
+  }
 
   try {
     const raw = await generate(
       SYSTEM,
       `本人の発言: ${card.statement}\n抜けている項目: ${missing.join(",")}`,
     );
+    // AIが返した文にも、同じ検査をかける
+    if (guard && (await guard.response(raw)) === "flagged") {
+      armor = "flagged";
+      return fallback();
+    }
     const parsed = JSON.parse(raw) as {
       field?: string;
       question?: string;
@@ -71,7 +86,7 @@ export async function proposeNext(
       if (validateSuggestion(card.statement, cand).ok) suggestions.push(cand);
       else dropped++;
     }
-    return { field, question, suggestions: suggestions.slice(0, 3), source: "gemini", dropped };
+    return { field, question, suggestions: suggestions.slice(0, 3), source: "gemini", dropped, armor };
   } catch {
     return fallback();
   }

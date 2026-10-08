@@ -133,7 +133,7 @@ export function nameMatchesPage(name: string, pageText: string, min = 2): boolea
 
 export async function findWindows(
   input: FinderInput,
-  deps: { generate: Generate | null; generateGrounded?: GenerateGrounded | null; resolveSource?: ResolveSource; fetchPage: FetchPage; now?: () => Date },
+  deps: { generate: Generate | null; generateGrounded?: GenerateGrounded | null; guard?: { response(text: string): Promise<"ok" | "flagged" | "unavailable"> } | null; resolveSource?: ResolveSource; fetchPage: FetchPage; now?: () => Date },
 ): Promise<FindOutcome> {
   if (!deps.generate && !deps.generateGrounded) return { ok: false, reason: "no_model" };
   let raw: string;
@@ -147,6 +147,8 @@ export async function findWindows(
   } catch {
     return { ok: false, reason: "model_failed" };
   }
+  // AIが返した文に、攻撃文が混ざっていたら、使わない
+  if (deps.guard && (await deps.guard.response(raw)) === "flagged") return { ok: false, reason: "model_failed" };
   let parsed = parseCandidates(raw);
   // 検索つきの回答は、たまにJSONにならない。そのときは、1回だけ、やり直す
   if (parsed.length === 0 && deps.generateGrounded) {
