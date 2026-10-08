@@ -1,4 +1,5 @@
 import { screenInput } from "./guardrails";
+import { normalizeCode } from "./promo";
 
 /**
  * パイロット（無料の試行）の申し込み。窓口・支援機関の方が、連絡先を残す。
@@ -13,6 +14,8 @@ export interface PilotDoc {
   contactName?: string;
   email: string;
   note?: string;
+  /** 招待コード（形式が正しいものだけ。中身の確認は、保存側で行う） */
+  code?: string;
   at: string;
 }
 
@@ -31,6 +34,12 @@ export function validatePilot(input: unknown): { ok: true; value: Omit<PilotDoc,
   const value: Omit<PilotDoc, "at"> = { org, kind: o.kind as OrgKind, email };
   const contactName = str(o.contactName, 40);
   if (contactName) value.contactName = contactName;
+  const rawCode = typeof o.code === "string" ? o.code.trim() : "";
+  if (rawCode) {
+    const code = normalizeCode(rawCode);
+    if (!code) return { ok: false, reason: "code_format" };
+    value.code = code;
+  }
   const note = str(o.note, 300);
   if (note) {
     // 一言に、相談者の個人情報（電話・住所など）を書かない

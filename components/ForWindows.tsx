@@ -5,6 +5,7 @@ import { useState } from "react";
 import { IconBack, IconBuilding, IconCheck, IconPaper, IconPhone, IconShield } from "@/components/icons";
 import { Button, Notice, buttonClass } from "@/components/ui";
 import { ORG_KINDS } from "@/lib/pilot";
+import { INVITE_OFFER } from "@/lib/promo";
 
 const KIND_LABEL: Record<(typeof ORG_KINDS)[number], string> = {
   gov: "行政（市区町村・都道府県）",
@@ -29,25 +30,31 @@ const POINTS = [
   { icon: <IconPaper className="h-6 w-6" />, t: "書き写す手間を、減らす", d: "項目ごとのコピーと、紙（日時・照合コード付き）で、窓口の様式に写せます。" },
 ];
 
-export default function ForWindows() {
+export default function ForWindows({ initialCode = "" }: { initialCode?: string }) {
   const [org, setOrg] = useState("");
   const [kind, setKind] = useState<string>("gov");
   const [contactName, setContactName] = useState("");
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [consent, setConsent] = useState(false);
-  const [state, setState] = useState<"idle" | "sending" | "done" | "error" | "pii">("idle");
+  const [code, setCode] = useState(initialCode);
+  const [result, setResult] = useState<{ invited: boolean; unknown: boolean } | null>(null);
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error" | "pii" | "code">("idle");
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setState("sending");
     const r = await fetch("/api/pilot", {
       method: "POST",
-      body: JSON.stringify({ org, kind, contactName, email, note, consent }),
+      body: JSON.stringify({ org, kind, contactName, email, note, consent, code }),
     }).catch(() => null);
-    if (r?.ok) return setState("done");
     const j = r ? await r.json().catch(() => ({})) : {};
-    setState(j.error === "note_pii" ? "pii" : "error");
+    if (r?.ok) {
+      setResult({ invited: !!j.invited, unknown: !!j.codeGivenButUnknown });
+      return setState("done");
+    }
+    setState(j.error === "note_pii" ? "pii" : j.error === "code_format" ? "code" : "error");
   }
 
   const input = "mt-1.5 w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none";
@@ -120,6 +127,20 @@ export default function ForWindows() {
         </Notice>
       </section>
 
+      <section className="mt-8 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="offer-h">
+        <h2 id="offer-h" className="text-xl font-bold">{INVITE_OFFER.title}</h2>
+        <p className="mt-2 text-base leading-8">ほかの窓口から、招待コードを受け取った方は、次の内容で試行に参加できます。</p>
+        <ul className="mt-3 space-y-2">
+          {INVITE_OFFER.items.map((t) => (
+            <li key={t} className="flex items-start gap-3 text-base leading-8">
+              <IconCheck className="mt-1.5 h-5 w-5 shrink-0 text-ok" />
+              {t}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm leading-7 text-muted">{INVITE_OFFER.note}</p>
+      </section>
+
       <section className="mt-8" aria-labelledby="pilot-h">
         <h2 id="pilot-h" className="text-xl font-bold">無料のパイロットに、関心のある方へ</h2>
         <p className="mt-2 text-sm leading-7 text-muted">
@@ -133,6 +154,8 @@ export default function ForWindows() {
             </span>
             <p className="mt-3 text-lg font-bold">受け付けました</p>
             <p className="mt-1 text-sm leading-7">担当から、ご連絡します。ご連絡先は、パイロットのご連絡のためだけに使い、180日で削除します。</p>
+            {result?.invited && <p className="mt-2 text-sm font-semibold leading-7">招待コードを確認しました。上の特典の内容で、ご案内します。</p>}
+            {result?.unknown && <p className="mt-2 text-sm leading-7 text-muted">招待コードは、確認できませんでした。申し込みは、受け付けています。</p>}
           </div>
         ) : (
           <form onSubmit={submit} className="mt-4">
@@ -156,6 +179,9 @@ export default function ForWindows() {
             <textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={300} className={input} />
             <p className="mt-1 text-xs leading-6 text-muted">相談に来た方の情報は、書かないでください。</p>
 
+            <label htmlFor="code" className="mt-4 block text-base font-semibold">招待コード（お持ちの方）</label>
+            <input id="code" value={code} onChange={(e) => setCode(e.target.value)} maxLength={20} autoComplete="off" placeholder="EN-XXXX-XXXX" className={input} />
+
             <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-line p-4 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-wood">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-5 w-5 shrink-0" />
               <span className="text-sm leading-7">
@@ -163,6 +189,11 @@ export default function ForWindows() {
               </span>
             </label>
 
+            {state === "code" && (
+              <div className="mt-4">
+                <Notice tone="warn" role="alert">招待コードの形が違うようです（例: EN-AB23-CD45）。確かめるか、空にして、もう一度送ってください。</Notice>
+              </div>
+            )}
             {state === "pii" && (
               <div className="mt-4">
                 <Notice tone="warn" role="alert">ひとことに、電話番号などの個人情報があるようです。消してから、もう一度送ってください。</Notice>

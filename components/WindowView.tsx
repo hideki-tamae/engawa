@@ -58,6 +58,8 @@ export default function WindowView({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [invite, setInvite] = useState<{ code: string; items: readonly string[] } | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
 
   function load() {
     fetch(`/api/cards/${token}`)
@@ -305,9 +307,45 @@ export default function WindowView({ token }: { token: string }) {
                     <IconCopy className="h-5 w-5" />
                     {copiedLink ? "コピーしました" : "このページのリンクをコピー"}
                   </Button>
-                  <p className="mt-2 text-xs leading-6 text-muted">
-                    受け取る側の窓口は、<a href="/for-windows" className="underline">窓口の方へ</a>のページから、無料のパイロットに参加できます。
-                  </p>
+                  <div className="mt-4 rounded-2xl bg-paper p-4">
+                    <p className="text-base font-bold">次の窓口に、招待コードを渡す</p>
+                    <p className="mt-1 text-sm leading-7">受け取った窓口は、導入の初期設定の代行と、試行レポートが、無料になります。</p>
+                    {!invite ? (
+                      <Button
+                        variant="quiet"
+                        className="mt-3 w-full"
+                        onClick={async () => {
+                          const r = await fetch("/api/invite", { method: "POST" }).catch(() => null);
+                          if (r?.ok) {
+                            const j = await r.json();
+                            setInvite({ code: j.code, items: j.offer.items });
+                          }
+                        }}
+                      >
+                        招待コードをつくる
+                      </Button>
+                    ) : (
+                      <>
+                        <p className="mt-3 select-all rounded-xl bg-paper-2 p-3 text-center font-mono text-2xl font-bold tracking-wider" aria-label="招待コード">
+                          {invite.code}
+                        </p>
+                        <Button
+                          variant="quiet"
+                          className="mt-3 w-full"
+                          onClick={() => {
+                            void navigator.clipboard.writeText(
+                              `Engawa の無料パイロットへの招待です。\n${window.location.origin}/for-windows?code=${invite.code}\n（招待コード: ${invite.code}）`,
+                            );
+                            setInviteCopied(true);
+                            setTimeout(() => setInviteCopied(false), 1600);
+                          }}
+                        >
+                          <IconCopy className="h-5 w-5" />
+                          {inviteCopied ? "コピーしました" : "案内文をコピー"}
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </Notice>
               </div>
             )}

@@ -18,6 +18,7 @@ import { REFUSAL_MESSAGES, type ScreenResult, screenInput } from "@/lib/guardrai
 import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import CoverPicker from "@/components/CoverPicker";
+import ProfileEditor from "@/components/ProfileEditor";
 import FindWindows from "@/components/FindWindows";
 import HandbookCard from "@/components/HandbookCard";
 import { Guide, Mark } from "@/components/Mark";
@@ -494,6 +495,10 @@ export default function PersonFlow() {
                 <CoverPicker />
               </div>
             )}
+          </div>
+
+          <div className="mt-8">
+            <ProfileEditor />
           </div>
 
           {showLink && (

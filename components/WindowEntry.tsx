@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { IconBack } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
@@ -34,6 +35,7 @@ function Flow() {
 }
 
 export default function WindowEntry() {
+  const router = useRouter();
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState(false);
 
@@ -41,7 +43,7 @@ export default function WindowEntry() {
     e.preventDefault();
     const t = extractToken(link);
     if (!t) return setLinkError(true);
-    window.location.href = `/window/${t}`;
+    router.push(`/window/${t}`);
   }
 
   return (
