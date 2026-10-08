@@ -10,5 +10,5 @@
 - [x] 7. README・AI 使用の開示・プライバシー説明
 - [~] 8. 台本は作成。構成図は課金後の実際の構成で最終版を作る 構成図・3分デモ台本
 
-# 課金後
+# 課金後（Cloud Run・Vertex AI・Firestore(30日TTL) は 2026-10-08 に完了。残り：Speech-to-Text、Cloud Logging の見せ方、KMS による外部固定）
 Firestore / Cloud Run / Speech-to-Text / Cloud Logging
