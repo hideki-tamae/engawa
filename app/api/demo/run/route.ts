@@ -1,4 +1,4 @@
-import { geminiGenerate } from "@/lib/agent";
+import { pickGenerate } from "@/lib/llm";
 import { runScenario } from "@/lib/demo";
 import { LIMITS, allow, clientKey } from "@/lib/ratelimit";
 
@@ -7,7 +7,6 @@ export async function GET(request: Request) {
   if (!allow(`demo:${clientKey(request)}`, LIMITS.agent.limit, LIMITS.agent.windowMs)) {
     return Response.json({ error: "rate_limited" }, { status: 429 });
   }
-  const key = process.env.GEMINI_API_KEY;
-  const steps = await runScenario(key ? geminiGenerate(key) : null);
+  const steps = await runScenario(pickGenerate());
   return Response.json({ steps });
 }

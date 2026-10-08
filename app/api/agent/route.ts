@@ -1,5 +1,6 @@
 import type { ProblemCard } from "@/lib/card";
-import { geminiGenerate, proposeNext } from "@/lib/agent";
+import { proposeNext } from "@/lib/agent";
+import { pickGenerate } from "@/lib/llm";
 import { LIMITS, allow, clientKey } from "@/lib/ratelimit";
 
 export async function POST(request: Request) {
@@ -17,7 +18,6 @@ export async function POST(request: Request) {
   if (typeof card.statement !== "string" || card.statement.length > LIMITS.statementMax) {
     return Response.json({ error: "statement_invalid" }, { status: 422 });
   }
-  const key = process.env.GEMINI_API_KEY;
-  const proposal = await proposeNext(card, key ? geminiGenerate(key) : null);
+  const proposal = await proposeNext(card, pickGenerate());
   return Response.json({ proposal });
 }
