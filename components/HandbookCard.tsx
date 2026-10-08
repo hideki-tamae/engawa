@@ -16,6 +16,7 @@ function Seal({ date, animate }: { date?: string; animate?: boolean }) {
       className={`grid h-16 w-16 shrink-0 rotate-[-6deg] place-items-center rounded-full border-[3px] border-warn/80 bg-paper/70 text-center text-warn ${
         animate ? "anim-stamp" : ""
       }`}
+      role="img"
       aria-label={`確認済み${date ? `（${date}）` : ""}`}
     >
       <div className="leading-tight">

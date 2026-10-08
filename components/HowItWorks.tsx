@@ -94,6 +94,7 @@ export default function HowItWorks() {
                   {s.checks.map((c) => (
                     <li key={c.label} className="flex gap-3">
                       <span
+                        role="img"
                         aria-label={c.ok ? "期待どおり" : "期待と違う"}
                         className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${c.ok ? "bg-ok text-paper" : "bg-warn text-paper"}`}
                       >
