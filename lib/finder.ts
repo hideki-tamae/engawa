@@ -147,7 +147,17 @@ export async function findWindows(
   } catch {
     return { ok: false, reason: "model_failed" };
   }
-  const parsed = parseCandidates(raw);
+  let parsed = parseCandidates(raw);
+  // 検索つきの回答は、たまにJSONにならない。そのときは、1回だけ、やり直す
+  if (parsed.length === 0 && deps.generateGrounded) {
+    try {
+      const g2 = await deps.generateGrounded(SYSTEM, buildPrompt(input));
+      parsed = parseCandidates(g2.text);
+      if (parsed.length) sources = g2.sources;
+    } catch {
+      /* 1回目の結果のまま */
+    }
+  }
   const results: Candidate[] = [];
   const seen = new Set<string>();
   await Promise.all(

@@ -154,3 +154,28 @@ describe("検索の根拠のページから、リンクを取り戻す", () => {
     expect(r.ok && r.candidates[0].verified).toBe(false);
   });
 });
+
+describe("JSONにならなかったとき", () => {
+  it("1回だけ、やり直す", async () => {
+    let n = 0;
+    const flaky = async () => {
+      n++;
+      return n === 1
+        ? { text: "調べました。結果は次のとおりです。", sources: [] }
+        : { text: "```json\n" + JSON.stringify([{ name: "年金事務所", kind: "国", what: "年金の相談", url: "https://www.city.example.lg.jp/a.html" }]) + "\n```", sources: [] };
+    };
+    const r = await findWindows(base, { generate: null, generateGrounded: flaky, fetchPage });
+    expect(n).toBe(2);
+    expect(r.ok && r.candidates.length).toBe(1);
+  });
+  it("2回とも駄目なら、空のまま（無限に繰り返さない）", async () => {
+    let n = 0;
+    const bad = async () => {
+      n++;
+      return { text: "なし", sources: [] };
+    };
+    const r = await findWindows(base, { generate: null, generateGrounded: bad, fetchPage });
+    expect(n).toBe(2);
+    expect(r.ok && r.candidates.length).toBe(0);
+  });
+});
