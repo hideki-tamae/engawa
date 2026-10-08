@@ -68,8 +68,9 @@ export default function ForWindows() {
       </p>
 
       <nav aria-label="このページの内容" className="mt-6 grid gap-3 sm:grid-cols-2">
-        <a href="#receive" className={buttonClass("primary", "w-full")}>手帳を受け取った方へ</a>
-        <a href="#pilot-h" className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
+        <Link href="/window" className={buttonClass("primary", "w-full")}>窓口のログイン・手帳を開く</Link>
+        <a href="#receive" className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
+        <a href="#pilot-h" className={buttonClass("quiet", "w-full sm:col-span-2")}>無料パイロットに申し込む</a>
       </nav>
 
       <section id="receive" className="mt-8 scroll-mt-6 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="receive-h">
@@ -89,7 +90,7 @@ export default function ForWindows() {
         <div className="mt-6 rounded-2xl bg-paper-2 p-4">
           <p className="text-base font-bold">本人から「リンク」を受け取ったとき</p>
           <p className="mt-1 text-base leading-8">
-            そのリンクを開くと、<strong>窓口のログイン画面</strong>が出ます。ログインすると、内容の確認・項目ごとのコピー・記録用のコピー・次の窓口への引き継ぎが、できます。
+            <Link href="/window" className="font-semibold underline underline-offset-4">窓口の入口</Link>でログインして、リンクを貼ると開けます。リンクを直接開いても、<strong>窓口のログイン画面</strong>が出ます。ログインすると、内容の確認・項目ごとのコピー・記録用のコピー・次の窓口への引き継ぎが、できます。
           </p>
         </div>
         <p className="mt-4 text-sm leading-7 text-muted">
