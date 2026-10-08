@@ -13,16 +13,19 @@ Zenn の提出物：約3分の動画（YouTube）。**主要な機能が、実�
 ## 構成（3:00）
 | 時間 | 映像 | ナレーション |
 |---|---|---|
-| 0:00–0:20 | 縁側のねこ（Flow S1）→ タイトル「Engawa（縁側）」 | 窓口が変わるたびに、同じ話を、一からする。うまく言葉にできない人ほど、途中で諦めてしまう。私自身、そうでした。Engawa は、困りごとを、自分の言葉のまま持ち歩ける手帳です。 |
-| 0:20–0:45 | 3つの窓口で説明を繰り返すAさん（Flow S2、顔は映さない）＋ 字幕「家族の世話をしている中2のうち、相談したことがない子：67.7％（厚労省委託調査、2021）」 | Aさんは、三つ目の窓口で、また同じ説明をしています。家族の世話をしている中学2年生で、相談したことがない子は、およそ7割でした。 |
-| 0:45–1:25 | 【実画面・スマホ】はじめる → 書く（声でも可）→ 質問（AIが選ぶ）→ 確認 →「合っている」で印 → 見せる範囲（初期は「見せない」。選ぶとプレビュー） | まず、自分の言葉で書きます。話してもかまいません。AIは、次に聞く質問を選ぶだけで、候補は、あなたの言葉からの引用だけです。診断も、点数づけも、しません。「合っている」を押すと、確認済の印が押されます。窓口に見せる範囲は、あなたが選びます。 |
-| 1:25–1:55 | 【実画面】手帳完成 →「窓口に画面を見せる」（大きな文字）→ 紙（QR・照合コード）→ 照合ページで「一致しました」 | できた手帳は、携帯の画面を見せても、紙にして持っていってもかまいません。窓口の準備は、要りません。紙には、日時と照合コードが付いていて、あとから、同じ内容かを確かめられます。 |
-| 1:55–2:30 | 【実画面・パソコン】窓口ログイン → 読む → 本人に確かめる（確認前は引き継ぎが鍵つき）→ 引き継ぐ → 経過の時系列 | 窓口側は、読む、本人に確かめる、引き継ぐ、の順です。本人の確認がないと、引き継ぎはできません。誰がいつ見たかは、本人にも見えて、いつでも取り下げられます。 |
-| 2:30–2:50 | 【実画面】/how の「22/22」→ Cloud Logging の画面（本文なし）→ 構成図 | AIの出力は、必ず検証します。診断のような質問は、通しません。記録は、書き換えを検知できます。ログに、本人の言葉は入りません。Cloud Run、Vertex AI、Firestore で動いています。 |
-| 2:50–3:00 | ねこ（Flow S3）＋ 字幕「現時点では、提携や連携はありません」 | 窓口が受け取るかは、窓口しだいです。まず、カードを作る時間と、書き終える人の割合を測ります。 |
+| 0:00–0:20 | 縁側の空の座布団とノート（Flow S1）→ タイトル「Engawa（縁側）」 | 窓口が変わるたびに、同じ話を、一からする。うまく言葉にできない人ほど、途中で諦めてしまう。Engawa は、困りごとを、自分の言葉のまま持ち歩ける手帳です。 |
+| 0:20–0:45 | 3つの窓口で説明を繰り返すAさん（Flow S2、顔は映さない）＋ 字幕「窓口に不満を持った人の60.2%が、待ち時間を理由に挙げた（名古屋市・令和7年度第1回市政アンケート、有効回答851人）」 | 窓口の不満で、いちばん多いのは待ち時間です。Engawa は、待ち時間そのものは、解決しません。狙うのは、窓口を回るたびに、同じ説明をやり直す手間です。 |
+| 0:45–1:20 | 【実画面・スマホ】はじめる → 書く（声でも可）→ 質問（AIが選ぶ）→ 確認 →「合っている」で印 → 見せる範囲 | まず、自分の言葉で書きます。話してもかまいません。AIは、次に聞く質問を選ぶだけで、候補は、あなたの言葉からの引用だけです。診断も、点数づけも、しません。窓口に見せる範囲は、あなたが選びます。 |
+| 1:20–1:45 | 【実画面】手帳完成 →（任意）基本情報を、この端末にだけ残す →「窓口に画面を見せる」→ 基本情報も見せる → 項目ごとにコピー | 名前や住所を、毎回書く手間も、減らせます。基本情報は、端末の中にだけ残り、見せるかどうかは、そのつど選びます。身分証の写真やマイナンバーは、預かりません。 |
+| 1:45–2:10 | 【実画面・パソコン】/window で受け取る → 本人に確かめる（確認前は引き継ぎが鍵つき）→ 引き継ぐ → 招待コードをつくる | 窓口側は、読む、本人に確かめる、引き継ぐ、の順です。引き継いだら、次の窓口に、招待コードを渡せます。受け取った窓口は、試行の間、無料で、導入の初期設定の代行も受けられます。 |
+| 2:10–2:35 | 【実画面】次の相談先の提案（確認できたリンクだけ公式ページ。確認できないものは、公式サイト内の検索リンク）→ Model Armor が攻撃文を止める画面（固定の質問に戻る） | AIは、相談先を探しますが、リンクは、実際にページを開いて確かめたものだけを出します。「指示を無視して」のような攻撃文は、Google の Model Armor で検出して、AIに渡しません。 |
+| 2:35–2:55 | 【実画面】/how の Evals → 安全テスト13項目 → 構成図 → 費用の1枚（1件 約1.5円） | 診断のような質問は、通しません。共有範囲の外が見えないこと、取り下げが効くことなど、13項目を、本番で確かめています。ログに、本人の言葉は入りません。1件の相談の費用は、音声ありで、約1.5円です。 |
+| 2:55–3:00 | 縁側の夕方（Flow S3）＋ 字幕「現時点では、提携や連携はありません」 | 窓口が受け取るかは、窓口しだいです。まず、カードを作る時間と、書き終える人の割合を測ります。 |
 
-※ 「私自身、そうでした」は、田前さん本人の事実として、この表現でよいか、収録前に確認する。
+※ 名古屋市の数字は、**年度・調査名・母数**を字幕に入れる。60.2%は「窓口に不満を持った人」の中での割合で、全市民の割合ではない。
+※ 「私自身、そうでした」は、本人の事実として使うか、収録前に確認する（今回の台本では外した）。
 ※ 窓口のパスワードは、動画に映さない（Zenn のテストアカウント欄に書く）。作り話の例だけを使う。
+※ 費用の1.5円は、小さな実測（各3回）に基づく概算（docs/COST.md）。字幕に「概算」と入れる。
 
 ## Google Flow で作るもの（3本・各8秒前後）
 共通の注意：**画面に文字を入れない**（生成の文字は崩れやすい）。**顔を映さない**（後ろ姿・手元・影）。**実在のロゴ・実在の役所名を出さない**。静かで、温かい色。大げさに悲しませない。
@@ -32,9 +35,9 @@ Zenn の提出物：約3分の動画（YouTube）。**主要な機能が、実�
 Warm hand-painted 2D animation style, soft paper texture, gentle afternoon light, muted warm palette (cream, wood brown, sage green, soft orange). Calm, quiet, dignified mood. No text, no logos, no subtitles in the image. No faces shown: use back views, hands, silhouettes.
 ```
 
-**S1：縁側（導入）**
+**S1：縁側（導入・ねこなし）**
 ```
-[共通スタイル] A Japanese engawa (wooden veranda) in late afternoon. A tabby cat sits calmly with eyes closed on a red zabuton cushion. A small teacup with a thin curl of steam sits beside a small notebook. Sunlight glows softly over a garden. Very slow camera push-in. The cat's tail sways gently. 8 seconds.
+[共通スタイル] A Japanese engawa (wooden veranda) in late afternoon. A red zabuton cushion sits empty on the wooden floor. A small teacup with a thin curl of steam sits beside a small notebook. Sunlight glows softly over a garden. Very slow camera push-in. Steam from the teacup drifts gently. 8 seconds.
 ```
 **S2：繰り返し（問題）**
 ```
@@ -42,9 +45,9 @@ Warm hand-painted 2D animation style, soft paper texture, gentle afternoon light
 ```
 **S3：終わり（余韻）**
 ```
-[共通スタイル] The same engawa at dusk. Warm orange light. The tabby cat dozes. A small notebook with a green checkmark seal sits on the wooden floor next to the cup. Camera slowly pulls back. 6 seconds.
+[共通スタイル] The same engawa at dusk. Warm orange light. The empty zabuton rests quietly. A small notebook with a green checkmark seal sits on the wooden floor next to the cup. Camera slowly pulls back. 6 seconds.
 ```
-同じねこの見た目を保つために、Flow の「参照画像」に、アプリのねこの絵（docs の画像）を入れる。
+ねこは使わない（キャラクターなし）。
 
 ## 実画面の録画のしかた
 1. iPhone：設定 → コントロールセンターに「画面収録」を追加 → 通知をオフ（おやすみモード）→ 録画しながら、公開URLを操作。
