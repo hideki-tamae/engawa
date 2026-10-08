@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { IconBack, IconBuilding, IconCheck, IconPaper, IconPhone, IconShield } from "@/components/icons";
-import { Button, Notice } from "@/components/ui";
+import { Button, Notice, buttonClass } from "@/components/ui";
 import { ORG_KINDS } from "@/lib/pilot";
 
 const KIND_LABEL: Record<(typeof ORG_KINDS)[number], string> = {
@@ -14,6 +14,13 @@ const KIND_LABEL: Record<(typeof ORG_KINDS)[number], string> = {
   npo: "NPO・支援団体・民間",
   other: "その他",
 };
+
+const RECEIVE_STEPS = [
+  { t: "画面か、紙を見る", d: "本人が、携帯の画面を見せるか、紙を出します。準備は要りません。" },
+  { t: "「合っていますか」と確かめる", d: "本人が確かめた言葉だけが、載っています。" },
+  { t: "コピーして、記録や用紙に写す", d: "項目ごと、または記録用にまとめて、コピーできます。" },
+  { t: "次の窓口へ、引き継ぐ", d: "窓口の画面で引き継ぎを記録し、リンクを次の窓口に渡せます。本人は、もう一度説明しなくて済みます。" },
+];
 
 const POINTS = [
   { icon: <IconPhone className="h-6 w-6" />, t: "準備は、要りません", d: "本人が、携帯の画面か、紙を見せます。アカウントも、システム連携も、不要です。" },
@@ -60,6 +67,37 @@ export default function ForWindows() {
         同じ話を、最初から聞き直す手間を、減らせるかもしれません。
       </p>
 
+      <nav aria-label="このページの内容" className="mt-6 grid gap-3 sm:grid-cols-2">
+        <a href="#receive" className={buttonClass("primary", "w-full")}>手帳を受け取った方へ</a>
+        <a href="#pilot-h" className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
+      </nav>
+
+      <section id="receive" className="mt-8 scroll-mt-6 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="receive-h">
+        <h2 id="receive-h" className="text-2xl font-bold">手帳を受け取ったら</h2>
+        <p className="mt-2 text-base leading-8 text-ink">本人が、画面か紙で見せます。次の順で、受け取れます。</p>
+        <ol className="mt-5 space-y-4">
+          {RECEIVE_STEPS.map((st, i) => (
+            <li key={st.t} className="flex items-start gap-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-wood text-lg font-bold text-paper" aria-hidden>{i + 1}</span>
+              <span>
+                <span className="block text-lg font-bold leading-8">{st.t}</span>
+                <span className="block text-base leading-8 text-muted">{st.d}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-6 rounded-2xl bg-paper-2 p-4">
+          <p className="text-base font-bold">本人から「リンク」を受け取ったとき</p>
+          <p className="mt-1 text-base leading-8">
+            そのリンクを開くと、<strong>窓口のログイン画面</strong>が出ます。ログインすると、内容の確認・項目ごとのコピー・記録用のコピー・次の窓口への引き継ぎが、できます。
+          </p>
+        </div>
+        <p className="mt-4 text-sm leading-7 text-muted">
+          ログインの情報は、試用の窓口にだけお渡ししています。
+          <Link href="/how" className="ml-1 underline underline-offset-4">仕組みを見る</Link>
+        </p>
+      </section>
+
       <ul className="mt-6 space-y-3">
         {POINTS.map((p) => (
           <li key={p.t} className="flex items-start gap-4 rounded-2xl bg-paper-2 p-4">
@@ -71,19 +109,6 @@ export default function ForWindows() {
           </li>
         ))}
       </ul>
-
-      <section className="mt-8 rounded-3xl border border-line bg-paper p-5 shadow-soft">
-        <h2 className="text-xl font-bold">受け取り方</h2>
-        <ol className="mt-3 list-decimal space-y-2 pl-6 text-base leading-8">
-          <li>本人が、携帯の画面を見せる、または、紙を出します。</li>
-          <li>読んで、本人に「合っていますか」と、確かめます。</li>
-          <li>必要なら、項目をコピーして、窓口の記録や用紙に写します。</li>
-        </ol>
-        <p className="mt-3 text-sm leading-7 text-muted">
-          次の窓口に引き継ぐときは、窓口用の画面（ログイン）を使えます。
-          <Link href="/how" className="ml-1 underline underline-offset-4">仕組みを見る</Link>
-        </p>
-      </section>
 
       <section className="mt-8">
         <Notice tone="info">
