@@ -12,7 +12,7 @@ import { Button, Notice, buttonClass } from "@/components/ui";
 
 interface Mine {
   withdrawn: boolean;
-  view: SharedView;
+  view: SharedView | null;
   log: AuditEntry[];
   chain: { ok: boolean };
 }
@@ -64,7 +64,9 @@ export default function MyCard({ token }: { token: string }) {
       <p className="mt-2 text-base leading-8 text-muted">いつ、誰が見たかを、ここで確かめられます。いつでも取り下げられます。</p>
 
       <div className="mt-6">
-        <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={!data.withdrawn} animateIn cover={cover} />
+        {data.view ? (
+          <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={!data.withdrawn} animateIn cover={cover} />
+        ) : null}
         <div className="mt-3 text-center print:hidden">
           <Button variant="ghost" className="min-h-11 text-base" onClick={() => setCoverOpen((v) => !v)} aria-expanded={coverOpen}>
             {coverOpen ? "カバーを閉じる" : "カバーを変える"}

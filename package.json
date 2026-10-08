@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "verify": "bash scripts/verify.sh",
-    "verify:full": "bash scripts/verify.sh --build"
+    "verify:full": "bash scripts/verify.sh --build",
+    "safety": "node scripts/safety.mjs"
   },
   "dependencies": {
     "@google-cloud/firestore": "^9.3.1",

@@ -7,9 +7,10 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/cards/[toke
   const { token } = await ctx.params;
   const h = await store.get(token);
   if (!h) return Response.json({ error: "not_found" }, { status: 404 });
+  // 取り下げたあとは、リンクを知っている人にも、内容を返さない
   return Response.json({
     withdrawn: h.withdrawn,
-    view: viewFor(h.card),
+    view: h.withdrawn ? null : viewFor(h.card),
     log: h.log,
     chain: verifyChain(h.log),
   });

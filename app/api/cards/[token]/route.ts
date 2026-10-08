@@ -30,7 +30,15 @@ export async function POST(request: Request, ctx: RouteContext<"/api/cards/[toke
   const { token } = await ctx.params;
   const h = await store.get(token);
   if (!h) return Response.json({ error: "not_found" }, { status: 404 });
-  const body = (await request.json()) as { action: string; to?: string };
+  let body: { action: string; to?: string };
+  try {
+    body = (await request.json()) as { action: string; to?: string };
+  } catch {
+    return Response.json({ error: "bad_json" }, { status: 400 });
+  }
+  if (typeof body !== "object" || body === null || typeof body.action !== "string") {
+    return Response.json({ error: "bad_json" }, { status: 400 });
+  }
   // 取り下げは、カードを持つ本人の操作。それ以外は、ログインした窓口の操作。
   if (body.action !== "withdraw" && !windowUser(request)) {
     return Response.json({ error: "login_required" }, { status: 401 });
