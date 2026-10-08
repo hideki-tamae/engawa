@@ -6,11 +6,16 @@ import type { Step } from "@/lib/demo";
 import { IconBack, IconCheck, IconShield, IconUndo } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 import type { TrialSummary } from "@/lib/trial";
+import type { EvalReport } from "@/lib/evals";
 
 export default function HowItWorks() {
   const [steps, setSteps] = useState<Step[] | null>(null);
   const [error, setError] = useState(false);
   const [run, setRun] = useState(0);
+  const [evals, setEvals] = useState<EvalReport | null>(null);
+  const [live, setLive] = useState<{ report: EvalReport; adopted: number; total: number; avgMs: number; cached?: boolean } | null>(null);
+  const [liveBusy, setLiveBusy] = useState(false);
+  const [liveErr, setLiveErr] = useState<string | null>(null);
   const [trial, setTrial] = useState<(TrialSummary & { enough: boolean }) | null>(null);
 
   useEffect(() => {
@@ -37,6 +42,26 @@ export default function HowItWorks() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/evals")
+      .then((r) => r.json())
+      .then((j) => alive && setEvals(j))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function runLive() {
+    setLiveBusy(true);
+    setLiveErr(null);
+    const r = await fetch("/api/evals/live", { method: "POST" }).catch(() => null);
+    setLiveBusy(false);
+    if (!r || !r.ok) return setLiveErr(r?.status === 429 ? "回数の上限です。しばらくしてから、お試しください。" : "実行できませんでした。");
+    setLive(await r.json());
+  }
 
   const total = steps?.reduce((n, s) => n + s.checks.length, 0) ?? 0;
   const passed = steps?.reduce((n, s) => n + s.checks.filter((c) => c.ok).length, 0) ?? 0;
@@ -80,6 +105,72 @@ export default function HowItWorks() {
               <p className="text-base text-muted">項目が、設計どおりに動きました</p>
             </div>
           </div>
+
+          <section className="mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft" aria-labelledby="evals-h">
+            <h2 id="evals-h" className="text-xl font-bold">AI の制御のテスト（Evals）</h2>
+            <p className="mt-1 text-sm leading-7 text-muted">
+              診断・点数づけ・責める文面・個人情報・攻撃（「指示を無視して」など）に、制御が効いているかを、自動で確かめています。
+            </p>
+            {evals ? (
+              <>
+                <p className="mt-4 text-3xl font-bold tabular-nums">
+                  {evals.passed} <span className="text-xl font-semibold text-muted">/ {evals.total}</span>
+                  <span className="ml-2 text-base font-semibold text-muted">件が、通りました</span>
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {evals.byCategory.map((c) => (
+                    <li key={c.category} className="flex items-center justify-between gap-3 rounded-2xl bg-paper-2 px-4 py-2.5 text-sm">
+                      <span>{c.category}</span>
+                      <span className="shrink-0 font-bold tabular-nums">
+                        {c.passed}/{c.total}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-sm font-semibold text-wood-dark underline underline-offset-4">1件ずつ見る</summary>
+                  <ul className="mt-2 space-y-1.5 text-sm leading-6">
+                    {evals.cases.map((c) => (
+                      <li key={c.id} className="flex gap-2">
+                        <span aria-label={c.ok ? "通った" : "通らなかった"} role="img" className={c.ok ? "text-ok" : "text-warn"}>
+                          {c.ok ? "✓" : "✗"}
+                        </span>
+                        <span>{c.desc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </>
+            ) : (
+              <p className="mt-4 text-muted">動かしています…</p>
+            )}
+            <div className="mt-5 rounded-2xl border border-line p-4">
+              <p className="text-sm font-semibold">実際の AI（Gemini）で、12件ためす</p>
+              <p className="mt-1 text-xs leading-6 text-muted">
+                AI は、毎回、違う答えを返します。そこで、「検証を通った出力だけが画面に出るか」と、「AI の案が採用された割合」を、別々に出します。
+              </p>
+              <Button variant="quiet" className="mt-3 w-full" onClick={runLive} disabled={liveBusy}>
+                {liveBusy ? "ためしています…（30秒ほど）" : live ? "結果を見なおす" : "ためす"}
+              </Button>
+              {liveErr && (
+                <p role="alert" className="mt-2 text-sm text-warn">
+                  {liveErr}
+                </p>
+              )}
+              {live && (
+                <div className="mt-3 text-sm leading-7" role="status">
+                  <p>
+                    検証を通った出力だけが画面に出た：<strong className="tabular-nums">{live.report.passed}/{live.total}</strong>
+                  </p>
+                  <p>
+                    AI の案が採用された：<strong className="tabular-nums">{live.adopted}/{live.total}</strong>
+                    （残りは、検証で外され、固定の質問に戻った）
+                  </p>
+                  <p>平均の応答時間：{live.avgMs} ミリ秒{live.cached ? "（直近の結果を表示）" : ""}</p>
+                </div>
+              )}
+            </div>
+          </section>
 
           <ol className="mt-8 space-y-5">
             {steps.map((s, i) => (

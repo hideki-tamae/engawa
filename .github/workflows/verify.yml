@@ -1,0 +1,16 @@
+name: verify
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # 型・lint・テスト（Evals の決まった入力を含む）・秘密情報の混入チェック・本番ビルド
+      - run: npm ci
+      - run: npm run verify:full

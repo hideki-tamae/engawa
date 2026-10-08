@@ -1,4 +1,5 @@
 import type { FieldKey } from "@/lib/card";
+import { type Cover, coverBackground } from "@/lib/cover";
 import { IconCheck } from "./icons";
 
 const LABEL: Record<FieldKey, string> = {
@@ -40,6 +41,7 @@ export default function HandbookCard({
   animateStamp = false,
   large = false,
   draft = false,
+  cover = null,
 }: {
   statement: string;
   fields: Partial<Record<FieldKey, { value: string }>>;
@@ -49,6 +51,8 @@ export default function HandbookCard({
   animateStamp?: boolean;
   large?: boolean;
   draft?: boolean;
+  /** 本人の画面だけで使う。窓口に見せる画面・紙・窓口側では、渡さない */
+  cover?: Cover | null;
 }) {
   const body = large ? "text-3xl leading-[1.65]" : "text-xl leading-9";
   const small = large ? "text-lg" : "text-sm";
@@ -59,7 +63,10 @@ export default function HandbookCard({
         draft ? "border-dashed border-wood/60" : "border-wood/40"
       } ${animateIn ? "anim-card-in" : ""}`}
     >
-      <header className="flex items-center justify-between bg-wood px-5 py-3.5 text-paper">
+      <header
+        style={cover ? coverBackground(cover) : undefined}
+        className={`flex justify-between px-5 text-paper ${cover ? "min-h-28 items-end pb-3.5 pt-3.5" : "items-center bg-wood py-3.5"}`}
+      >
         <span className="flex items-center gap-2 text-base font-bold tracking-wide">
           <span aria-hidden className="inline-block h-4 w-1.5 rounded-full bg-sun" />
           困りごとの手帳

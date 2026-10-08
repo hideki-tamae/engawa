@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit-chain";
 import type { SharedView } from "@/lib/handoff";
+import CoverPicker from "@/components/CoverPicker";
 import HandbookCard from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
 import { IconEye, IconPhone, IconShield, IconUndo } from "@/components/icons";
+import { useCover } from "@/lib/cover-client";
 import { Button, Notice, buttonClass } from "@/components/ui";
 
 interface Mine {
@@ -20,6 +22,8 @@ export default function MyCard({ token }: { token: string }) {
   const [missing, setMissing] = useState(false);
   const [version, setVersion] = useState(0);
   const [asking, setAsking] = useState(false);
+  const cover = useCover();
+  const [coverOpen, setCoverOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -60,7 +64,17 @@ export default function MyCard({ token }: { token: string }) {
       <p className="mt-2 text-base leading-8 text-muted">いつ、誰が見たかを、ここで確かめられます。いつでも取り下げられます。</p>
 
       <div className="mt-6">
-        <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={!data.withdrawn} animateIn />
+        <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={!data.withdrawn} animateIn cover={cover} />
+        <div className="mt-3 text-center print:hidden">
+          <Button variant="ghost" className="min-h-11 text-base" onClick={() => setCoverOpen((v) => !v)} aria-expanded={coverOpen}>
+            {coverOpen ? "カバーを閉じる" : "カバーを変える"}
+          </Button>
+        </div>
+        {coverOpen && (
+          <div className="mt-2">
+            <CoverPicker />
+          </div>
+        )}
       </div>
 
       {data.withdrawn ? (

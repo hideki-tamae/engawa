@@ -17,8 +17,10 @@ import {
 import { REFUSAL_MESSAGES, type ScreenResult, screenInput } from "@/lib/guardrails";
 import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
+import CoverPicker from "@/components/CoverPicker";
+import FindWindows from "@/components/FindWindows";
 import HandbookCard from "@/components/HandbookCard";
-import { Cat, Guide } from "@/components/Cat";
+import { Guide, Mark } from "@/components/Mark";
 import Hero from "@/components/Hero";
 import Qr from "@/components/Qr";
 import Veranda from "@/components/Veranda";
@@ -40,6 +42,7 @@ import {
 } from "@/components/icons";
 import { Button, Chip, Notice, StepDots, buttonClass } from "@/components/ui";
 import { STT_MAX_SECONDS, blobTo16kPcmBase64 } from "@/lib/audio";
+import { useCover } from "@/lib/cover-client";
 import { initTrial, track, useTrialMode } from "@/lib/trial-client";
 
 const FIELD_LABEL: Record<FieldKey, string> = {
@@ -121,6 +124,8 @@ export default function PersonFlow() {
   const [copied, setCopied] = useState<string | null>(null);
   const [copyOpen, setCopyOpen] = useState(false);
   const trial = useTrialMode();
+  const cover = useCover();
+  const [coverOpen, setCoverOpen] = useState(false);
   useEffect(() => {
     initTrial();
   }, []);
@@ -473,7 +478,18 @@ export default function PersonFlow() {
               animateIn
               animateStamp
               stampDate={today}
+              cover={cover}
             />
+            <div className="mt-3 text-center">
+              <Button variant="ghost" className="min-h-11 text-base" onClick={() => setCoverOpen((v) => !v)} aria-expanded={coverOpen}>
+                {coverOpen ? "カバーを閉じる" : "カバーを変える"}
+              </Button>
+            </div>
+            {coverOpen && (
+              <div className="mt-2">
+                <CoverPicker />
+              </div>
+            )}
           </div>
 
           {showLink && (
@@ -501,6 +517,8 @@ export default function PersonFlow() {
               </Notice>
             </div>
           )}
+
+          <FindWindows whats={picks.what} helps={picks.help} />
 
           <h2 className="mt-10 text-lg font-bold text-ink">ほかの渡し方</h2>
           <ul className="mt-3 space-y-3">
@@ -682,7 +700,7 @@ export default function PersonFlow() {
           className="inline-flex min-h-11 items-center text-lg font-bold tracking-tight text-wood-dark"
           aria-label="最初の画面にもどる"
         >
-          <Cat className="mr-2 h-9 w-9" />
+          <Mark className="mr-2 h-9 w-9" />
           Engawa <span className="ml-1.5 text-sm font-semibold text-wood">縁側</span>
         </button>
       </div>

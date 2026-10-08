@@ -57,3 +57,33 @@ export function pickGenerate(): Generate | null {
   const key = process.env.GEMINI_API_KEY;
   return key ? geminiGenerate(key) : null;
 }
+
+/** Google 検索を根拠にした呼び出し（相談先の候補を探すとき用）。JSON 指定とは併用できないため、文章から取り出す。 */
+export function vertexGroundedGenerate(project: string, model = "gemini-2.5-flash"): Generate {
+  return async (system, user) => {
+    const token = await accessToken();
+    const res = await fetch(
+      `https://aiplatform.googleapis.com/v1beta1/projects/${project}/locations/global/publishers/google/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents: [{ role: "user", parts: [{ text: user }] }],
+          tools: [{ googleSearch: {} }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1200, thinkingConfig: { thinkingBudget: 0 } },
+        }),
+        signal: AbortSignal.timeout(25_000),
+      },
+    );
+    if (!res.ok) throw new Error(`vertex-grounded ${res.status}`);
+    const j = (await res.json()) as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
+    const parts = j.candidates?.[0]?.content?.parts ?? [];
+    return parts.filter((x) => !x.thought).map((x) => x.text ?? "").join("");
+  };
+}
+
+export function pickGroundedGenerate(): Generate | null {
+  const project = process.env.VERTEX_PROJECT;
+  return project ? vertexGroundedGenerate(project, process.env.VERTEX_MODEL ?? "gemini-2.5-flash") : null;
+}

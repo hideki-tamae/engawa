@@ -88,9 +88,6 @@ body {
   .anim-sun {
     animation: sun 8s ease-in-out infinite;
   }
-  .cat-tail {
-    animation: tail 4.5s ease-in-out infinite;
-  }
 }
 
 @keyframes fade-up {
@@ -157,15 +154,6 @@ body {
   }
   50% {
     transform: translateY(-4px);
-  }
-}
-@keyframes tail {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(7deg);
   }
 }
 @keyframes sun {
