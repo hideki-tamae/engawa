@@ -4,7 +4,8 @@
  */
 const g = globalThis as unknown as { __engawaCollect?: Record<string, unknown[]>; __engawaFs2?: unknown };
 const mem = (g.__engawaCollect ??= {});
-const RETENTION_DAYS = 90;
+const RETENTION_DAYS: Record<string, number> = { trial: 90, ratings: 90, pilots: 180 };
+type Collection = "trial" | "ratings" | "pilots";
 
 async function fs() {
   if (!g.__engawaFs2) {
@@ -14,16 +15,16 @@ async function fs() {
   return g.__engawaFs2 as import("@google-cloud/firestore").Firestore;
 }
 
-export async function addDoc(collection: "trial" | "ratings", doc: Record<string, unknown>): Promise<void> {
+export async function addDoc(collection: Collection, doc: Record<string, unknown>): Promise<void> {
   if (process.env.FIRESTORE_PROJECT) {
-    const expireAt = new Date(Date.now() + RETENTION_DAYS * 86_400_000);
+    const expireAt = new Date(Date.now() + RETENTION_DAYS[collection] * 86_400_000);
     await (await fs()).collection(collection).add({ ...doc, expireAt });
     return;
   }
   (mem[collection] ??= []).push(doc);
 }
 
-export async function listDocs<T>(collection: "trial" | "ratings", limit = 5000): Promise<T[]> {
+export async function listDocs<T>(collection: Collection, limit = 5000): Promise<T[]> {
   if (process.env.FIRESTORE_PROJECT) {
     const snap = await (await fs()).collection(collection).limit(limit).get();
     return snap.docs.map((d) => d.data() as T);

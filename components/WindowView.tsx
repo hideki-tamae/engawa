@@ -57,6 +57,7 @@ export default function WindowView({ token }: { token: string }) {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   function load() {
     fetch(`/api/cards/${token}`)
@@ -284,6 +285,31 @@ export default function WindowView({ token }: { token: string }) {
               </div>
             ) : (
               <p className="mt-2 pl-12 text-sm leading-7 text-muted">本人が「合っている」と答えた後に、使えるようになります。</p>
+            )}
+            {handedOff && (
+              <div className="mt-4 pl-12">
+                <Notice tone="ok" role="status">
+                  <p className="font-semibold">引き継ぎを記録しました。</p>
+                  <p className="mt-1 text-sm leading-7">
+                    次の相談先には、本人から、画面か紙で渡してもらうのが基本です。窓口用の画面で見てもらう場合は、このページのリンクを、お渡しください。
+                  </p>
+                  <Button
+                    variant="quiet"
+                    className="mt-3 w-full"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(window.location.href);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 1600);
+                    }}
+                  >
+                    <IconCopy className="h-5 w-5" />
+                    {copiedLink ? "コピーしました" : "このページのリンクをコピー"}
+                  </Button>
+                  <p className="mt-2 text-xs leading-6 text-muted">
+                    受け取る側の窓口は、<a href="/for-windows" className="underline">窓口の方へ</a>のページから、無料のパイロットに参加できます。
+                  </p>
+                </Notice>
+              </div>
             )}
             <p className="mt-3 pl-12 text-xs leading-5 text-muted">※ 引き継ぎ先は例です。現時点では、実在の機関との提携や連携はありません。</p>
           </section>
