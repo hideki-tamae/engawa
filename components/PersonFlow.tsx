@@ -17,6 +17,7 @@ import { REFUSAL_MESSAGES, screenInput, type ScreenResult } from "@/lib/guardrai
 import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import Qr from "@/components/Qr";
+import HandbookCard from "@/components/HandbookCard";
 
 const FIELD_LABEL: Record<FieldKey, string> = {
   when: "いつ頃",
@@ -46,7 +47,7 @@ function getRecognition(): SpeechRecognitionLike | null {
   return Ctor ? new Ctor() : null;
 }
 
-export default function PersonFlow() {
+export default function PersonFlow({ intro }: { intro?: React.ReactNode }) {
   const [step, setStep] = useState<Step>("write");
   const [text, setText] = useState("");
   const [voiceUsed, setVoiceUsed] = useState(false);
@@ -179,6 +180,8 @@ export default function PersonFlow() {
   const quiet = `${btn} border border-[#7a5a2f]/40 text-[#4a3a22] hover:bg-[#7a5a2f]/10`;
 
   return (
+    <>
+      {step === "write" && intro}
     <section className="mx-auto w-full max-w-xl px-5 py-10 text-[#2d2418]">
       {notice && notice.verdict === "escalate" && (
         <div role="alert" className="mb-6 rounded-2xl border border-red-300 bg-red-50 p-4 text-base print:hidden">
@@ -401,7 +404,15 @@ export default function PersonFlow() {
       {step === "done" && card && (
         <div>
           <div className="print:hidden">
-            <h2 className="text-2xl font-semibold">カードができました</h2>
+            <h2 className="text-2xl font-semibold">手帳ができました</h2>
+            <div className="mt-4">
+              <HandbookCard
+                statement={card.statement}
+                fields={Object.fromEntries(
+                  FIELD_KEYS.filter((k) => card.fields[k] && card.shareScope.includes(k)).map((k) => [k, { value: card.fields[k]!.value }]),
+                )}
+              />
+            </div>
             <p className="mt-2 text-base text-[#5b4a33]">
               これは、あなたの困りごとを、あなたの言葉のまま持ち歩ける手帳です。窓口で、同じ話を最初から説明し直す手間を、減らすためのものです。
               窓口が受け取るかどうかは、窓口によります。
@@ -519,5 +530,6 @@ export default function PersonFlow() {
         </div>
       )}
     </section>
+    </>
   );
 }
