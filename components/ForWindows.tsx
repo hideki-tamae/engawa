@@ -68,7 +68,7 @@ export default function ForWindows() {
       </p>
 
       <nav aria-label="このページの内容" className="mt-6 grid gap-3">
-        <Link href="/window" className={buttonClass("primary", "w-full whitespace-nowrap")}>窓口ログイン・手帳を開く</Link>
+        <Link href="/window" className={buttonClass("primary", "w-full whitespace-nowrap")}>窓口のログイン・手帳を開く</Link>
         <a href="#receive" className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
         <a href="#pilot-h" className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
       </nav>
