@@ -88,16 +88,16 @@
     <text x="898" y="616" font-weight="700" fill="#5b4a33">これから：Cloud KMS ＋ Bucket Lock</text>
     <text x="898" y="637" font-size="12" fill="#5b4a33">先頭ハッシュを外部に固定（運営者も書き換え不可）</text>
 
-    <rect x="880" y="664" width="340" height="62" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6"/>
-    <text x="898" y="690" font-weight="700" fill="#5b4a33">これから：Speech-to-Text</text>
-    <text x="898" y="711" font-size="12" fill="#5b4a33">話して入力の本番化（音声は保存しない）</text>
+    <rect x="880" y="664" width="340" height="62" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
+    <text x="898" y="690" font-weight="700" fill="#2d2418">Speech-to-Text（日本語）</text>
+    <text x="898" y="711" font-size="12" fill="#5b4a33">話して入力：文字に直すだけ。音声は保存しない</text>
   </g>
   <path d="M812 190 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
   <path d="M812 310 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
   <path d="M878 420 H812" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
   <path d="M812 522 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
   <path d="M812 620 H878" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#a)"/>
-  <path d="M812 688 H878" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#a)"/>
+  <path d="M812 688 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
 
   <!-- build chain -->
   <g font-size="13">
