@@ -36,7 +36,7 @@
   <!-- Cloud Run -->
   <rect x="340" y="146" width="470" height="500" rx="18" fill="#fbf6ec" stroke="#7a5a2f" stroke-width="2.5"/>
   <text x="362" y="176" font-size="17" font-weight="700" fill="#2d2418">Cloud Run：engawa</text>
-  <text x="362" y="196" font-size="12" fill="#5b4a33">Next.js 16 ／ TypeScript ／ 最大2・0まで縮退 ／ 512MB</text>
+  <text x="362" y="196" font-size="12" fill="#5b4a33">Next.js 16 ／ TypeScript ／ 最大2台／未使用時は0台 ／ 512MB</text>
 
   <rect x="362" y="214" width="426" height="76" rx="12" fill="#fff" stroke="#d9c9a8"/>
   <text x="378" y="240" font-size="14" font-weight="700" fill="#2d2418">画面</text>
