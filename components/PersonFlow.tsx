@@ -21,6 +21,7 @@ import CoverPicker from "@/components/CoverPicker";
 import ProfileEditor from "@/components/ProfileEditor";
 import Celebrate from "@/components/Celebrate";
 import EmergencyList from "@/components/EmergencyList";
+import { EyeSwitch, FieldIcon, ScopeDots } from "@/components/ScopeParts";
 import HoldToSeal from "@/components/HoldToSeal";
 import SafetyPanel from "@/components/SafetyPanel";
 import StepArt from "@/components/StepArt";
@@ -1003,44 +1004,46 @@ export default function PersonFlow() {
               return (
                 <li key={k}>
                   <label
-                    className={`flex cursor-pointer items-center gap-4 rounded-2xl border-2 p-4 transition-colors ${
-                      on ? "border-wood bg-paper" : "border-line bg-paper-2/60"
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-200 ${
+                      on ? "border-wood bg-paper shadow-soft" : "border-line bg-paper-2/60"
                     } has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-wood`}
                   >
                     <input type="checkbox" className="peer sr-only" checked={on} onChange={() => toggleScope(k)} />
                     <span
                       aria-hidden
-                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 transition-colors ${
-                        on ? "border-wood bg-wood text-paper" : "border-line bg-white text-transparent"
-                      }`}
+                      className={`grid h-11 w-11 shrink-0 place-items-center rounded-full transition-colors ${on ? "bg-wood text-paper" : "bg-paper text-muted"}`}
                     >
-                      <IconCheck className="h-4 w-4" />
+                      <FieldIcon field={k} />
                     </span>
-                    <span className="flex-1">
+                    <span className="min-w-0 flex-1">
                       <span className="block text-xs text-muted">{FIELD_LABEL[k]}</span>
-                      <span className="block text-base leading-7">{card.fields[k]?.value}</span>
+                      <span className={`block text-base leading-7 ${on ? "" : "text-muted"}`}>{card.fields[k]?.value}</span>
                     </span>
-                    <span className={`text-sm font-medium ${on ? "text-wood-dark" : "text-muted"}`}>{on ? "見せる" : "見せない"}</span>
+                    <EyeSwitch on={on} />
                   </label>
                 </li>
               );
             })}
           </ul>
 
-          <div className="mt-4 flex gap-2">
+          <ScopeDots shown={card.shareScope.length} total={FIELD_KEYS.filter((k) => card.fields[k]).length} />
+          <div className="mt-4 grid grid-cols-2 gap-2">
             <Button
-              variant="ghost"
-              className="min-h-11 px-2 text-base"
+              variant="quiet"
+              className="min-h-12 px-3 text-base"
               onClick={() => setCard(setShareScope(card, FIELD_KEYS.filter((k) => card.fields[k])))}
             >
-              すべて選ぶ
+              すべて見せる
             </Button>
-            <Button variant="ghost" className="min-h-11 px-2 text-base" onClick={() => setCard(setShareScope(card, []))}>
-              すべて外す
+            <Button variant="quiet" className="min-h-12 px-3 text-base" onClick={() => setCard(setShareScope(card, []))}>
+              すべて見せない
             </Button>
           </div>
 
-          <p className="mt-6 text-sm font-medium text-muted">窓口には、こう見えます</p>
+          <p className="mt-8 flex items-center gap-2 text-base font-bold text-ink">
+            <IconEye className="h-5 w-5 text-wood" />
+            窓口には、こう見えます
+          </p>
           <div className="mt-2">
             <HandbookCard
               statement={card.statement}
@@ -1048,6 +1051,17 @@ export default function PersonFlow() {
               stamp={false}
               draft
             />
+            {FIELD_KEYS.some((k) => card.fields[k] && !card.shareScope.includes(k)) && (
+              <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+                <IconLock className="h-4 w-4" />
+                見えない項目：
+                {FIELD_KEYS.filter((k) => card.fields[k] && !card.shareScope.includes(k)).map((k) => (
+                  <span key={k} className="rounded-full bg-paper-3 px-3 py-1 font-semibold">
+                    {FIELD_LABEL[k]}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
 
           <div className="mt-8 flex gap-3">
