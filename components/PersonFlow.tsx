@@ -21,6 +21,7 @@ import CoverPicker from "@/components/CoverPicker";
 import ProfileEditor from "@/components/ProfileEditor";
 import Celebrate from "@/components/Celebrate";
 import EmergencyList from "@/components/EmergencyList";
+import HoldToSeal from "@/components/HoldToSeal";
 import SafetyPanel from "@/components/SafetyPanel";
 import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
 import FindWindows from "@/components/FindWindows";
@@ -947,9 +948,17 @@ export default function PersonFlow() {
               stampDate={today}
             />
           </div>
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8">
+            <HoldToSeal disabled={sealing} onConfirm={confirmNow} />
+            <p className="mt-2 text-center text-sm leading-7 text-muted">合っていたら、ここを、長押ししてください。</p>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button variant="quiet" disabled={sealing} onClick={confirmNow}>
+              <IconCheck className="h-5 w-5" />
+              ボタンで「合っている」
+            </Button>
             <Button
-              variant="quiet"
+              variant="ghost"
               disabled={sealing}
               onClick={() => {
                 setQi(0);
@@ -957,10 +966,6 @@ export default function PersonFlow() {
               }}
             >
               違う、直す
-            </Button>
-            <Button className="flex-1" disabled={sealing} onClick={confirmNow}>
-              <IconCheck className="h-6 w-6" />
-              合っている
             </Button>
           </div>
         </div>

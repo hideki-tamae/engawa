@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { IconBack, IconBuilding, IconCheck, IconPaper, IconPhone, IconShield } from "@/components/icons";
+import { IconBack, IconCheck, IconPaper, IconPhone, IconShield } from "@/components/icons";
+import WindowsHero from "@/components/WindowsHero";
 import { Button, Notice, buttonClass } from "@/components/ui";
 import { ORG_KINDS } from "@/lib/pilot";
 import { INVITE_OFFER } from "@/lib/promo";
@@ -17,14 +18,14 @@ const KIND_LABEL: Record<(typeof ORG_KINDS)[number], string> = {
 };
 
 const RECEIVE_STEPS = [
-  { t: "画面か、紙を見る", d: "本人が、携帯の画面を見せるか、紙を出します。準備は要りません。" },
+  { t: "画面か、紙を見る", d: "画面か紙を見るだけ。準備は要りません。" },
   { t: "「合っていますか」と確かめる", d: "本人が確かめた言葉だけが、載っています。" },
   { t: "コピーして、記録や用紙に写す", d: "項目ごと、または記録用にまとめて、コピーできます。" },
   { t: "次の窓口へ、引き継ぐ", d: "窓口の画面で引き継ぎを記録し、リンクを次の窓口に渡せます。本人は、もう一度説明しなくて済みます。" },
 ];
 
 const POINTS = [
-  { icon: <IconPhone className="h-6 w-6" />, t: "準備は、要りません", d: "本人が、携帯の画面か、紙を見せます。アカウントも、システム連携も、不要です。" },
+  { icon: <IconPhone className="h-6 w-6" />, t: "準備は、要りません", d: "アカウントも、連携も、いりません。" },
   { icon: <IconCheck className="h-6 w-6" />, t: "本人が確かめた言葉だけ", d: "本人が「合っている」と確認し、見せる範囲を選んだ内容だけが、届きます。" },
   { icon: <IconShield className="h-6 w-6" />, t: "診断や評価は、しません", d: "整理するのは、本人の言葉だけ。点数づけも、推測もしません。" },
   { icon: <IconPaper className="h-6 w-6" />, t: "書き写す手間を、減らす", d: "項目ごとのコピーと、紙（日時・照合コード付き）で、窓口の様式に写せます。" },
@@ -65,9 +66,9 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
         <IconBack className="h-4 w-4" />
         手帳にもどる
       </Link>
-      <span className="mt-4 grid h-14 w-14 place-items-center rounded-2xl bg-wood text-paper shadow-soft">
-        <IconBuilding className="h-8 w-8" />
-      </span>
+      <div className="mt-2">
+        <WindowsHero />
+      </div>
       <h1 className="mt-5 text-3xl font-bold leading-snug">窓口の方へ</h1>
       <p className="mt-3 text-lg leading-9 text-ink">
         相談に来た人が、<strong>自分の言葉のまま</strong>、困りごとを持ってきます。<br />
@@ -129,7 +130,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
 
       <section className="mt-8 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="offer-h">
         <h2 id="offer-h" className="text-xl font-bold">{INVITE_OFFER.title}</h2>
-        <p className="mt-2 text-base leading-8">ほかの窓口から、招待コードを受け取った方は、次の内容で試行に参加できます。</p>
+        <p className="mt-2 text-base leading-8">招待コードがあれば、次の内容で参加できます。</p>
         <ul className="mt-3 space-y-2">
           {INVITE_OFFER.items.map((t) => (
             <li key={t} className="flex items-start gap-3 text-base leading-8">
