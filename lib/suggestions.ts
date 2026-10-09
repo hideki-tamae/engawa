@@ -15,18 +15,20 @@ import { screenRequest } from "./guardrails";
  * 初期表示は、これまでの6つのまま。「ほかにもあてはまるものを見る」を押したときだけ、出す。
  * 戻したいときは、ENABLE_MORE_WHAT を false にする（画面と、相談先の探索の両方が、元に戻る）。
  */
-export const ENABLE_MORE_WHAT = true;
-export const WHAT_MORE: string[] = ENABLE_MORE_WHAT
-  ? ["支払いや借金のこと", "子育て・介護のこと", "ひきこもり・不登校のこと", "食べるものがない"]
-  : [];
-
-/** 安全に関わる選択肢。選ぶと、すぐに、公的な相談先と、画面を閉じるボタンを出す。 */
+/** 安全に関わる選択肢。「ほかにもあてはまるものを見る」の先頭に置く。選ぶと、すぐに、公的な相談先を出す。 */
 export const SAFETY_OPTION = "身の安全が心配（DV・虐待）";
+
+export const ENABLE_MORE_WHAT = true;
+/** 安全の選択肢は、設定に関わらず、必ず入る。 */
+export const WHAT_MORE: string[] = [
+  SAFETY_OPTION,
+  ...(ENABLE_MORE_WHAT ? ["支払いや借金のこと", "子育て・介護のこと", "ひきこもり・不登校のこと", "食べるものがない"] : []),
+];
 
 export const COMMON_OPTIONS: Record<FieldKey, string[]> = {
   when: ["今日・最近のこと", "ここ数か月", "前からずっと", "いつからか分からない"],
   where: ["家", "学校", "職場", "役所・窓口", "施設", "場所は言いにくい"],
-  what: ["お金のこと", "住まいのこと", "仕事・学校のこと", "家族のこと", "体や心の調子", "手続きが分からない", SAFETY_OPTION],
+  what: ["お金のこと", "住まいのこと", "仕事・学校のこと", "家族のこと", "体や心の調子", "手続きが分からない"],
   help: [
     "話を聞いてほしい",
     "手続きを一緒にしてほしい",
