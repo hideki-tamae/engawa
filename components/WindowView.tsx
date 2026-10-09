@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit-chain";
 import type { SharedView } from "@/lib/handoff";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import FindWindows, { type Found } from "@/components/FindWindows";
 import WindowMark from "@/components/WindowMark";
 import HandbookCard from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
 import { IconBuilding, IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
-import { Button, Notice } from "@/components/ui";
+import { Button, Notice, buttonClass } from "@/components/ui";
 import { FINDER_HELPS, FINDER_WHATS, termsFrom } from "@/lib/finder";
 import { PROFILE_FIELDS, type Profile, profileFromFragment } from "@/lib/profile";
 
@@ -59,6 +61,12 @@ export default function WindowView({ token }: { token: string }) {
   const [mode, setMode] = useState<"none" | "find" | "list">("none");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileCopied, setProfileCopied] = useState(false);
+  const router = useRouter();
+
+  async function logout() {
+    await fetch("/api/window-login", { method: "DELETE" }).catch(() => null);
+    router.push("/window");
+  }
   const [custom, setCustom] = useState("");
   const [needLogin, setNeedLogin] = useState(false);
   const [user, setUser] = useState("");
@@ -229,14 +237,19 @@ export default function WindowView({ token }: { token: string }) {
           </p>
           <h1 className="mt-1 text-3xl font-bold">本人から預かった手帳</h1>
         </div>
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
-            data.chain.ok ? "bg-ok-bg text-ok" : "bg-warn-bg text-warn"
-          }`}
-        >
-          <IconShield className="h-4 w-4" />
-          記録の改ざん検知：{data.chain.ok ? "異常なし" : "異常あり"}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
+              data.chain.ok ? "bg-ok-bg text-ok" : "bg-warn-bg text-warn"
+            }`}
+          >
+            <IconShield className="h-4 w-4" />
+            記録の改ざん検知：{data.chain.ok ? "異常なし" : "異常あり"}
+          </span>
+          <Button variant="quiet" className="min-h-11 px-4 text-sm" onClick={logout}>
+            ログアウト
+          </Button>
+        </div>
       </header>
       <p className="mt-2 text-base leading-7 text-muted">
         本人が選んだ範囲だけを表示しています。診断や評価の欄はありません。
@@ -482,6 +495,15 @@ export default function WindowView({ token }: { token: string }) {
           <Timeline log={data.log} mode="window" />
         </div>
       </section>
+
+      <nav className="mt-12 grid gap-3 border-t border-line pt-6 sm:grid-cols-2" aria-label="終わるとき">
+        <Link href="/window" className={buttonClass("quiet", "w-full")}>
+          別の手帳を開く
+        </Link>
+        <Button variant="ghost" className="w-full" onClick={logout}>
+          ログアウトして、終わる
+        </Button>
+      </nav>
     </div>
   );
 }

@@ -103,13 +103,15 @@ function Scene({ step, field }: { step: Step; field?: Field }) {
           <clipPath id="fuji-clip">
             <path d="M58 78 C100 71 127 50 137 22 Q150 14 163 22 C173 50 200 71 242 78 Z" />
           </clipPath>
+          <radialGradient id="dawn" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stopColor="#f6b98a" stopOpacity="0.55" />
+            <stop offset="1" stopColor="#f6b98a" stopOpacity="0" />
+          </radialGradient>
         </defs>
-        {/* 朝日 */}
-        <circle cx="206" cy="38" r="34" fill="#f2b84b" opacity="0.2" />
-        <circle cx="206" cy="38" r="23" fill="#e2573c" />
-        <g stroke="#f2b84b" strokeWidth="2.6" strokeLinecap="round">
-          <path d="M206 8 v-4 M232 18 l3 -3 M180 18 l-3 -3 M240 40 h4 M172 40 h-4" />
-        </g>
+        {/* 朝のやわらかい光（太陽は、富士山のうしろから、のぞく） */}
+        <circle cx="176" cy="42" r="46" fill="url(#dawn)" />
+        <circle cx="176" cy="42" r="26" fill="#f7c9a0" opacity="0.5" />
+        <circle cx="176" cy="42" r="17" fill="#f3a463" />
         {/* 地面 */}
         <rect x="0" y="74" width="300" height="16" fill="#cfe0c4" />
         <rect x="0" y="74" width="300" height="3.5" fill="#b3cc9e" />
@@ -122,12 +124,13 @@ function Scene({ step, field }: { step: Step; field?: Field }) {
         <path d="M58 78 C100 71 127 50 137 22 Q150 14 163 22 C173 50 200 71 242 78" fill="none" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         {/* 雲 */}
         <g fill="#fffdf8" opacity="0.95">
-          <ellipse cx="98" cy="46" rx="22" ry="6.5" />
-          <ellipse cx="112" cy="41" rx="13" ry="6" />
-          <ellipse cx="236" cy="62" rx="20" ry="5.5" />
-          <ellipse cx="248" cy="57" rx="11" ry="5" />
+          <ellipse cx="86" cy="50" rx="22" ry="6.2" />
+          <ellipse cx="99" cy="45" rx="12" ry="5.6" />
+          <ellipse cx="240" cy="64" rx="19" ry="5.2" />
+          <ellipse cx="251" cy="59" rx="10" ry="4.6" />
         </g>
-        {SPARK(60, 22, "0s")}
+        {SPARK(72, 22, "0s")}
+        {SPARK(226, 30, "1s")}
       </>
     );
   if (step === "ask")
