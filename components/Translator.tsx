@@ -32,6 +32,30 @@ export default function Translator() {
     if (lang !== "en") return;
 
     document.documentElement.lang = "en";
+    // 画面を、いったん隠す（読み込みの直後は、日本語が見えないように）。React の読み込みが終わってから、翻訳を始める
+    const style0 = document.createElement("style");
+    style0.textContent = "html[data-en-pending] body{opacity:0}";
+    document.head.appendChild(style0);
+    document.documentElement.setAttribute("data-en-pending", "");
+    const hardReveal = window.setTimeout(() => document.documentElement.removeAttribute("data-en-pending"), 4500);
+    let cleanup: (() => void) | undefined;
+    const startTimer = window.setTimeout(() => {
+      cleanup = begin();
+    }, 1100);
+    return () => {
+      window.clearTimeout(startTimer);
+      window.clearTimeout(hardReveal);
+      cleanup?.();
+      document.documentElement.removeAttribute("data-en-pending");
+      style0.remove();
+    };
+  }, []);
+
+  return null;
+}
+
+function begin(): () => void {
+  {
     const cache = new Map<string, string>(); // 鍵：日本語。図の中は、先頭に「s:」
     try {
       const saved = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? "{}") as Record<string, string>;
@@ -46,12 +70,7 @@ export default function Translator() {
     let timer: number | null = null;
     let first = true;
 
-    const style = document.createElement("style");
-    style.textContent = "html[data-en-pending] body{opacity:0}";
-    document.head.appendChild(style);
-    document.documentElement.setAttribute("data-en-pending", "");
     const reveal = () => document.documentElement.removeAttribute("data-en-pending");
-    const revealTimer = window.setTimeout(reveal, 3500);
 
     const skipped = (el: Element | null) => !!el && (SKIP_TAGS.has(el.tagName) || !!el.closest("[data-no-translate]"));
     const inSvg = (el: Element | null) => !!el && !!el.closest("svg");
@@ -161,15 +180,14 @@ export default function Translator() {
     collect(document.body);
     if (pendingText.size === 0 && pendingAttr.size === 0 && !JP.test(document.title)) reveal();
     else schedule();
+    // 念のため、あとから、もう一度（読み込みで、書き戻された文字を拾う）
+    const again = [window.setTimeout(() => { collect(document.body); schedule(); }, 2500), window.setTimeout(() => { collect(document.body); schedule(); }, 5000)];
 
     return () => {
       mo.disconnect();
-      window.clearTimeout(revealTimer);
+      again.forEach((x) => window.clearTimeout(x));
       if (timer !== null) window.clearTimeout(timer);
       reveal();
-      style.remove();
     };
-  }, []);
-
-  return null;
+  }
 }
