@@ -1,10 +1,10 @@
-import { randomBytes } from "node:crypto";
 import type { ProblemCard } from "@/lib/card";
 import { screenInput } from "@/lib/guardrails";
 import { proofFor, share } from "@/lib/handoff";
 import { logEvent } from "@/lib/log";
 import { LIMITS, allow, clientKey } from "@/lib/ratelimit";
 import { store } from "@/lib/store";
+import { newOwnerToken, windowIdFor } from "@/lib/tokens";
 
 export async function POST(request: Request) {
   if (!allow(`cards:${clientKey(request)}`, LIMITS.cards.limit, LIMITS.cards.windowMs)) {
@@ -29,10 +29,12 @@ export async function POST(request: Request) {
   if (screened.verdict === "refuse") {
     return Response.json({ error: "guardrail", reasons: screened.reasons }, { status: 422 });
   }
-  const token = randomBytes(16).toString("hex");
-  const r = share(card, token);
+  const owner = newOwnerToken(); // 本人用の合鍵
+  const windowToken = windowIdFor(owner); // 窓口用の合鍵（保存のIDも、これ）
+  const r = share(card, windowToken);
   if (!r.ok) return Response.json({ error: r.reason }, { status: 422 });
-  await store.put(r.value);
+  const h = { ...r.value, v: 2 as const };
+  await store.put(h);
   logEvent("card_shared", { fields: card.shareScope.length });
-  return Response.json({ token, proof: proofFor(r.value) });
+  return Response.json({ token: owner, windowToken, proof: proofFor(h) });
 }

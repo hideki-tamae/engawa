@@ -2,6 +2,7 @@ import { verifyChain } from "@/lib/audit-chain";
 import { handOff, open, recordReadBack, withdraw } from "@/lib/handoff";
 import { logEvent } from "@/lib/log";
 import { SESSION_COOKIE, verify } from "@/lib/session";
+import { ownerHandoff } from "@/lib/owner";
 import { store } from "@/lib/store";
 
 function windowUser(request: Request): string | null {
@@ -28,8 +29,6 @@ export async function GET(request: Request, ctx: RouteContext<"/api/cards/[token
 /** action: confirmed | corrected | handoff | withdraw */
 export async function POST(request: Request, ctx: RouteContext<"/api/cards/[token]">) {
   const { token } = await ctx.params;
-  const h = await store.get(token);
-  if (!h) return Response.json({ error: "not_found" }, { status: 404 });
   let body: { action: string; to?: string };
   try {
     body = (await request.json()) as { action: string; to?: string };
@@ -39,16 +38,19 @@ export async function POST(request: Request, ctx: RouteContext<"/api/cards/[toke
   if (typeof body !== "object" || body === null || typeof body.action !== "string") {
     return Response.json({ error: "bad_json" }, { status: 400 });
   }
-  // 取り下げは、カードを持つ本人の操作。それ以外は、ログインした窓口の操作。
-  if (body.action !== "withdraw" && !windowUser(request)) {
+  // 取り下げは、本人用の合鍵だけ。ほかは、窓口用の合鍵で、ログインした窓口の操作。
+  const isWithdraw = body.action === "withdraw";
+  if (!isWithdraw && !windowUser(request)) {
     return Response.json({ error: "login_required" }, { status: 401 });
   }
+  const h = isWithdraw ? await ownerHandoff(token) : await store.get(token);
+  if (!h) return Response.json({ error: "not_found" }, { status: 404 });
   let next;
   if (body.action === "confirmed" || body.action === "corrected") {
     next = recordReadBack(h, body.action);
   } else if (body.action === "handoff") {
     next = handOff(h, body.to ?? "次の窓口");
-  } else if (body.action === "withdraw") {
+  } else if (isWithdraw) {
     next = { ok: true as const, value: withdraw(h) };
   } else {
     return Response.json({ error: "unknown_action" }, { status: 400 });

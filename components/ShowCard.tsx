@@ -11,7 +11,7 @@ import { Notice, buttonClass } from "@/components/ui";
 
 /** 本人の携帯を窓口に向けて見せる画面。ログイン不要（本人の端末で開くため）。大きな文字、余計な操作なし。 */
 export default function ShowCard({ token }: { token: string }) {
-  const [data, setData] = useState<{ view: SharedView; withdrawn: boolean } | null>(null);
+  const [data, setData] = useState<{ view: SharedView; withdrawn: boolean; windowToken?: string } | null>(null);
   const [missing, setMissing] = useState(false);
   const [origin, setOrigin] = useState("");
 
@@ -71,7 +71,7 @@ export default function ShowCard({ token }: { token: string }) {
             記録や、次の窓口への引き継ぎは、<strong>ご自身の端末</strong>で、できます。
           </p>
           <div className="mt-3 flex items-center gap-4">
-            <Qr value={`${origin}/window/${token}`} label="読み取って、ログイン" />
+            <Qr value={`${origin}/window/${data.windowToken ?? token}`} label="読み取って、ログイン" />
             <ol className="list-decimal space-y-1.5 pl-5 text-base leading-7">
               <li>QR を、読み取る</li>
               <li>窓口のログイン</li>

@@ -19,6 +19,8 @@ export interface Handoff {
   card: ProblemCard;
   log: AuditEntry[];
   withdrawn: boolean;
+  /** 2 = 合鍵が本人用・窓口用に分かれている。token は、窓口用 */
+  v?: 2;
 }
 
 export type Result<T> = { ok: true; value: T } | { ok: false; reason: string };

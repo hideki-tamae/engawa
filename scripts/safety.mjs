@@ -55,23 +55,23 @@ const auth = { cookie };
 
 // 試験用カードを作る
 const created = await post("/api/cards", makeCard("試験用の相談文です " + MARK));
-const { token } = await created.json().catch(() => ({}));
-check("0. 試験用カードを作れる", created.ok && !!token, `status ${created.status}`);
+const { token, windowToken } = await created.json().catch(() => ({}));
+check("0. 試験用カードを作れる（本人用と窓口用の、2つの合鍵が返る）", created.ok && !!token && !!windowToken && token !== windowToken, `status ${created.status}`);
 
 // 1. 共有範囲外は見えない
 {
-  const r = await fetch(`${BASE}/api/cards/${token}`, { headers: auth });
+  const r = await fetch(`${BASE}/api/cards/${windowToken}`, { headers: auth });
   const t = await r.text();
   check("1. 共有範囲外の項目（いつ・してほしいこと）は、窓口に見えない", r.ok && !t.includes("WHEN-SECRET") && !t.includes("HELP-SECRET") && t.includes("WHAT-SHARED"), t.slice(0, 160));
 }
 // 2. ログインなし
 {
-  const r = await fetch(`${BASE}/api/cards/${token}`);
+  const r = await fetch(`${BASE}/api/cards/${windowToken}`);
   check("2. ログインなしでは、手帳を読めない（401）", r.status === 401, `status ${r.status}`);
 }
 // 3. 偽の署名
 {
-  const r = await fetch(`${BASE}/api/cards/${token}`, { headers: { cookie: cookie.replace(/.$/, "0") } });
+  const r = await fetch(`${BASE}/api/cards/${windowToken}`, { headers: { cookie: cookie.replace(/.$/, "0") } });
   check("3. 署名を書き換えた偽のログインは通らない（401）", r.status === 401, `status ${r.status}`);
 }
 // 4. 存在しないトークン
@@ -82,10 +82,10 @@ check("0. 試験用カードを作れる", created.ok && !!token, `status ${crea
 }
 // 5. 読み返し確認なしの引き継ぎは拒否 → 確認後は通る
 {
-  const r1 = await post(`/api/cards/${token}`, { action: "handoff", to: "次の窓口" }, auth);
+  const r1 = await post(`/api/cards/${windowToken}`, { action: "handoff", to: "次の窓口" }, auth);
   const j1 = await r1.json().catch(() => ({}));
-  const r2 = await post(`/api/cards/${token}`, { action: "confirmed" }, auth);
-  const r3 = await post(`/api/cards/${token}`, { action: "handoff", to: "次の窓口" }, auth);
+  const r2 = await post(`/api/cards/${windowToken}`, { action: "confirmed" }, auth);
+  const r3 = await post(`/api/cards/${windowToken}`, { action: "handoff", to: "次の窓口" }, auth);
   check("5. 本人の確認前は、引き継げない（409）。確認後は引き継げる", r1.status === 409 && j1.error === "person_not_confirmed_on_read_back" && r2.ok && r3.ok, `${r1.status} ${j1.error} / ${r2.status} / ${r3.status}`);
 }
 // 6. 個人情報つきの本人の言葉は、保存しない
@@ -96,7 +96,7 @@ check("0. 試験用カードを作れる", created.ok && !!token, `status ${crea
 // 7. 壊れた入力
 {
   const r1 = await post("/api/cards", "{not json");
-  const r2 = await post(`/api/cards/${token}`, "{not json", auth);
+  const r2 = await post(`/api/cards/${windowToken}`, "{not json", auth);
   check("7. 壊れたJSONは、エラー（400）で返す（落ちない）", r1.status === 400 && r2.status === 400, `cards ${r1.status} / action ${r2.status}`);
 }
 // 8. 大きすぎる入力
@@ -112,10 +112,18 @@ check("0. 試験用カードを作れる", created.ok && !!token, `status ${crea
   const t = JSON.stringify(j);
   check("9. 攻撃文は、AIに渡さず、固定の質問に戻る（システム指示は出ない）", r.ok && j.proposal?.source === "fallback" && !t.includes("一字一句"), t.slice(0, 200));
 }
+// 9b. 合鍵の分離
+{
+  const w1 = await post(`/api/cards/${windowToken}`, { action: "withdraw" });
+  const m1 = await fetch(`${BASE}/api/cards/${windowToken}/mine`);
+  const r1 = await fetch(`${BASE}/api/cards/${token}`, { headers: auth });
+  const stillThere = await fetch(`${BASE}/api/cards/${windowToken}`, { headers: auth });
+  check("9b. 窓口用の合鍵では、取り下げも、本人用の画面も、使えない（404）。本人用の合鍵を、窓口で出しても読めない", w1.status === 404 && m1.status === 404 && r1.status === 404 && stillThere.ok, `withdraw ${w1.status} / mine ${m1.status} / owner-as-window ${r1.status} / still ${stillThere.status}`);
+}
 // 10. 取り下げ → 窓口には何も見えない
 {
   const w = await post(`/api/cards/${token}`, { action: "withdraw" });
-  const r = await fetch(`${BASE}/api/cards/${token}`, { headers: auth });
+  const r = await fetch(`${BASE}/api/cards/${windowToken}`, { headers: auth });
   const t = await r.text();
   check("10. 取り下げたあとは、窓口に何も見えない（410）", w.ok && r.status === 410 && !t.includes(MARK), `withdraw ${w.status} / read ${r.status}`);
 }

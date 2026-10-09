@@ -193,13 +193,13 @@ export default function PersonFlow() {
       skipped: FIELD_KEYS.filter((k) => !c.fields[k]).length,
       shared: c.shareScope.length,
     });
-    setLink(`${o}/window/${j.token}`);
+    setLink(`${o}/window/${j.windowToken ?? j.token}`);
     setMineLink(`${o}/card/${j.token}`);
     setShowLink(`${o}/show/${j.token}`);
     setProof({
       createdAt: j.proof.createdAt,
       code: j.proof.code,
-      url: `${o}/verify/${j.token}?code=${j.proof.code}`,
+      url: `${o}/verify/${j.windowToken ?? j.token}?code=${j.proof.code}`,
     });
   }
 

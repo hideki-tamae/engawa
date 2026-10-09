@@ -17,6 +17,7 @@ export interface StoredDoc {
   card: string;
   log: string;
   withdrawn: boolean;
+  v?: 2;
   expireAt: Date;
 }
 
@@ -25,12 +26,13 @@ export function serialize(h: Handoff, now = new Date()): StoredDoc {
     card: JSON.stringify(h.card),
     log: JSON.stringify(h.log),
     withdrawn: h.withdrawn,
+    ...(h.v === 2 ? { v: 2 as const } : {}),
     expireAt: new Date(now.getTime() + RETENTION_DAYS * 24 * 60 * 60 * 1000),
   };
 }
 
-export function deserialize(token: string, d: { card: string; log: string; withdrawn: boolean }): Handoff {
-  return { token, card: JSON.parse(d.card), log: JSON.parse(d.log), withdrawn: d.withdrawn };
+export function deserialize(token: string, d: { card: string; log: string; withdrawn: boolean; v?: number }): Handoff {
+  return { token, card: JSON.parse(d.card), log: JSON.parse(d.log), withdrawn: d.withdrawn, ...(d.v === 2 ? { v: 2 as const } : {}) };
 }
 
 const g = globalThis as unknown as {
@@ -59,7 +61,7 @@ function firestoreStore(project: string): HandoffStore {
     async get(token) {
       const snap = await (await load()).doc(token).get();
       if (!snap.exists) return undefined;
-      return deserialize(token, snap.data() as { card: string; log: string; withdrawn: boolean });
+      return deserialize(token, snap.data() as { card: string; log: string; withdrawn: boolean; v?: number });
     },
     async put(h) {
       await (await load()).doc(h.token).set(serialize(h));
