@@ -1,5 +1,6 @@
 import type { FieldKey } from "@/lib/card";
 import { type Cover, coverBackground } from "@/lib/cover";
+import { COMMON_OPTIONS, WHAT_MORE } from "@/lib/suggestions";
 import { IconCheck } from "./icons";
 
 const LABEL: Record<FieldKey, string> = {
@@ -32,6 +33,13 @@ function Seal({ date, animate }: { date?: string; animate?: boolean }) {
  * 「困りごとの手帳」そのもの。画面でも、窓口に見せるときも、同じ見た目。
  * 本人の言葉を中心に、本人が選んだ項目だけを並べる。診断や評価の欄はない。
  */
+/** あらかじめ用意した選択肢だけの値か（本人の言葉ではない）。英語版で、翻訳してよいかの判断に使う。 */
+const PRESETS = new Set<string>([...Object.values(COMMON_OPTIONS).flat(), ...WHAT_MORE]);
+function isPreset(value: string | undefined): boolean {
+  if (!value) return true;
+  return value.split("、").every((v) => PRESETS.has(v.trim()));
+}
+
 export default function HandbookCard({
   statement,
   fields,
@@ -83,7 +91,7 @@ export default function HandbookCard({
         {present.map((k) => (
           <section key={k} className="border-t border-line pt-4">
             <p className={`${small} font-medium text-muted`}>{LABEL[k]}</p>
-            <p {...(fields[k]?.source === "own_words" ? { "data-no-translate": true } : {})} className={`mt-1 ${body} text-ink`}>{fields[k]?.value}</p>
+            <p {...(isPreset(fields[k]?.value) ? {} : { "data-no-translate": true })} className={`mt-1 ${body} text-ink`}>{fields[k]?.value}</p>
           </section>
         ))}
       </div>
