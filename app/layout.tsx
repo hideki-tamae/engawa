@@ -4,6 +4,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Engawa（縁側）｜困りごとの手帳",
   description: "困りごとを、あなたの言葉のまま持ち歩ける手帳。窓口が変わっても、同じ話を一からしなくて済むように。",
+  applicationName: "Engawa",
+  appleWebApp: { capable: true, title: "Engawa", statusBarStyle: "default" },
+  icons: {
+    icon: [{ url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
