@@ -17,7 +17,7 @@ export default function ProfileShow() {
     <section className="mx-auto max-w-2xl px-4 pb-10 print:hidden" aria-label="基本情報">
       {!on ? (
         <div className="rounded-3xl border border-line bg-paper-2 p-5 text-center">
-          <p className="text-base leading-8">この画面を見せる前に、基本情報（お名前・住所・電話番号）も、見せるか選べます。</p>
+          <p className="text-base leading-8">名前・住所・電話番号も、見せますか？</p>
           <Button variant="quiet" className="mt-3 w-full" onClick={() => setOn(true)}>
             基本情報も見せる
           </Button>
@@ -25,7 +25,7 @@ export default function ProfileShow() {
       ) : (
         <div className="rounded-3xl border-2 border-wood bg-paper p-5">
           <h2 className="text-xl font-bold">基本情報</h2>
-          <p className="mt-1 text-sm leading-7 text-muted">本人が、自分で入力したものです。この端末にだけ保存してあります。</p>
+          <p className="mt-1 text-sm leading-7 text-muted">自分で入れたものです。このスマホの中だけにあります。</p>
           <dl className="mt-4 space-y-3">
             {PROFILE_FIELDS.filter((f) => profile[f.key]).map((f) => (
               <div key={f.key} className="flex items-center justify-between gap-3 rounded-2xl bg-paper-2 p-3.5">

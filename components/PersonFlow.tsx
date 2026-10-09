@@ -19,6 +19,7 @@ import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import CoverPicker from "@/components/CoverPicker";
 import ProfileEditor from "@/components/ProfileEditor";
+import EmergencyList from "@/components/EmergencyList";
 import SafetyPanel from "@/components/SafetyPanel";
 import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
 import FindWindows from "@/components/FindWindows";
@@ -513,13 +514,13 @@ export default function PersonFlow() {
             </button>
             {prepOpen && (
               <div className="mt-3 text-base leading-8">
-                <p className="text-sm leading-7 text-muted">一般的な例です。窓口や手続きによって違います。行く前に、電話か、窓口の公式ページで、確かめてください。</p>
+                <p className="text-sm leading-7 text-muted">窓口によって、ちがいます。行く前に、電話か公式ページで、聞いてください。</p>
                 <ul className="mt-3 list-disc space-y-1.5 pl-6">
-                  <li>この手帳（携帯の画面か、紙）</li>
-                  <li>本人確認の書類（運転免許証、パスポート、健康保険証や資格確認書、マイナンバーカードなど）。1点で足りるか、2点必要かは、窓口によります</li>
-                  <li>住所が分かるもの（公共料金の通知、郵便物など）</li>
-                  <li>手続きに関係する書類（通知、契約書、請求書など）</li>
-                  <li>窓口によっては、印鑑</li>
+                  <li>この手帳（スマホの画面か、紙）</li>
+                  <li>本人だと分かるもの（免許証、保険証、パスポートなど）</li>
+                  <li>住所が分かるもの（公共料金の通知など）</li>
+                  <li>相談に関係する書類</li>
+                  <li>印鑑（いる窓口もあります）</li>
                 </ul>
               </div>
             )}
@@ -750,14 +751,8 @@ export default function PersonFlow() {
       {notice && notice.verdict === "escalate" && (
         <div className="mb-6">
           <Notice tone="warn" role="alert">
-            <p className="font-semibold">いま危険が迫っているときは、先にここへ連絡してください。</p>
-            <ul className="mt-2 space-y-1">
-              {notice.resources.map((r) => (
-                <li key={r.contact}>
-                  {r.label}：<span className="text-xl font-bold">{r.contact}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-xl font-bold leading-8">あぶないときは、すぐ電話してください</p>
+            <EmergencyList items={notice.resources} />
           </Notice>
         </div>
       )}
@@ -973,8 +968,8 @@ export default function PersonFlow() {
           {card.fields.what?.value.includes(SAFETY_OPTION) && (
             <div className="mt-4">
               <Notice tone="warn" role="status">
-                <p className="font-semibold">身の安全が心配とのこと、ここに書いたことが、画面や紙で、周りの人に見える可能性があります。</p>
-                <p className="mt-1 text-sm leading-7">一緒に住む人に見られると危険なときは、見せる範囲に入れないでください。先に、公的な相談窓口に、電話で相談してもかまいません。</p>
+                <p className="font-semibold">書いたことは、画面や紙で、まわりの人に見えることがあります。</p>
+                <p className="mt-1 text-sm leading-7">いっしょに住む人に見られるとあぶないときは、見せる範囲に入れないでください。</p>
               </Notice>
             </div>
           )}

@@ -25,6 +25,8 @@ export type Verdict = "allow" | "refuse" | "escalate";
 export interface Resource {
   label: string;
   contact: string;
+  /** ひとこと（通話無料・24時間など）。確認できたものだけ */
+  note?: string;
 }
 
 export interface ScreenResult {
@@ -37,10 +39,10 @@ export interface ScreenResult {
 export const EMERGENCY_RESOURCES: Resource[] = [
   { label: "警察", contact: "110" },
   { label: "救急", contact: "119" },
-  { label: "児童相談所 虐待対応ダイヤル（全国共通・通話無料）", contact: "189" },
-  { label: "DV相談ナビ（最寄りの相談機関につながる。受付時間は機関によります）", contact: "#8008" },
-  { label: "DV相談+（24時間の電話。チャット相談は12:00〜22:00）", contact: "0120-279-889" },
-  { label: "性犯罪・性暴力の相談 全国共通短縮ダイヤル（通話無料）", contact: "#8891" },
+  { label: "子どもの虐待", contact: "189", note: "通話無料" },
+  { label: "DV相談", contact: "#8008", note: "近くの相談先につながる" },
+  { label: "DV相談+", contact: "0120-279-889", note: "24時間" },
+  { label: "性暴力の相談", contact: "#8891", note: "通話無料" },
 ];
 
 /** 電話をかけるためのリンク（# は %23 にする） */

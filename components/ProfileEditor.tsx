@@ -40,8 +40,9 @@ export default function ProfileEditor() {
           基本情報（任意）
         </h2>
         <p className="mt-2 text-base leading-8">
-          窓口で毎回書く、お名前・住所・電話番号を、この端末にだけ残せます。
-          <strong>サーバーには送りません。</strong>窓口に見せるかどうかは、見せる画面で、そのつど選べます。
+          窓口で毎回書く、名前・住所・電話番号を、このスマホの中だけに残せます。
+          <br />
+          ほかには送りません。見せるかどうかは、見せるときに選べます。
         </p>
         {saved && (
           <p className="mt-2 text-sm leading-7 text-muted">
@@ -70,8 +71,8 @@ export default function ProfileEditor() {
         save();
       }}
     >
-      <h2 className="text-lg font-bold">基本情報（この端末にだけ保存）</h2>
-      <p className="mt-1 text-sm leading-7 text-muted">入れたい項目だけで、大丈夫です。身分証の写真や、マイナンバーなどの番号は、入れないでください。</p>
+      <h2 className="text-lg font-bold">基本情報（スマホの中だけ）</h2>
+      <p className="mt-1 text-sm leading-7 text-muted">入れたいものだけで、だいじょうぶです。身分証の写真や、マイナンバーは、入れないでください。</p>
       {PROFILE_FIELDS.map((f) => (
         <div key={f.key} className="mt-4">
           <label htmlFor={`p-${f.key}`} className="block text-base font-semibold">
