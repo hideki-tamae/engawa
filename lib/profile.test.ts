@@ -26,3 +26,11 @@ describe("基本情報（この端末だけ）", () => {
     expect(parseProfile(null)).toBeNull();
   });
 });
+
+describe("追加した項目（メール・連絡のしかた）", () => {
+  it("メールと、ひとことも、受け取る。長さは切る", () => {
+    const r = validateProfile({ email: "a@example.com", memo: "あ".repeat(100) });
+    expect(r.ok && r.value.email).toBe("a@example.com");
+    expect(r.ok && r.value.memo?.length).toBe(60);
+  });
+});

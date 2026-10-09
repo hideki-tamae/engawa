@@ -9,6 +9,8 @@ export const PROFILE_FIELDS = [
   { key: "birth", label: "生年月日", max: 20 },
   { key: "address", label: "住所", max: 120 },
   { key: "phone", label: "電話番号", max: 20 },
+  { key: "email", label: "メールアドレス", max: 60 },
+  { key: "memo", label: "連絡のしかた（ひとこと）", max: 60 },
 ] as const;
 export type ProfileKey = (typeof PROFILE_FIELDS)[number]["key"];
 export type Profile = Partial<Record<ProfileKey, string>>;

@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit-chain";
 import type { SharedView } from "@/lib/handoff";
+import FindWindows, { type Found } from "@/components/FindWindows";
+import WindowMark from "@/components/WindowMark";
 import HandbookCard from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
 import { IconBuilding, IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
+import { FINDER_HELPS, FINDER_WHATS, termsFrom } from "@/lib/finder";
 
 const LABEL: Record<string, string> = {
   what: "どんなこと",
@@ -50,7 +53,10 @@ function StepHead({ n, title, done, locked }: { n: number; title: string; done?:
 export default function WindowView({ token }: { token: string }) {
   const [data, setData] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [to, setTo] = useState(NEXT[0]);
+  const [to, setTo] = useState("");
+  const [toUrl, setToUrl] = useState<string | undefined>(undefined);
+  const [mode, setMode] = useState<"none" | "find" | "list">("none");
+  const [custom, setCustom] = useState("");
   const [needLogin, setNeedLogin] = useState(false);
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
@@ -200,8 +206,8 @@ export default function WindowView({ token }: { token: string }) {
     <div className="mx-auto w-full max-w-5xl px-5 pb-20 pt-8">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-sm font-semibold text-wood">
-            <IconBuilding className="h-5 w-5" />
+          <p className="flex items-center gap-2.5 text-sm font-semibold text-wood">
+            <WindowMark />
             窓口
           </p>
           <h1 className="mt-1 text-3xl font-bold">本人から預かった手帳</h1>
@@ -267,23 +273,88 @@ export default function WindowView({ token }: { token: string }) {
             <StepHead n={3} title="次の相談先へ引き継ぐ" done={handedOff} locked={!confirmed} />
             {confirmed ? (
               <div className="mt-4 space-y-3 pl-12">
-                <label className="sr-only" htmlFor="to">
-                  引き継ぎ先
-                </label>
-                <select
-                  id="to"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none"
-                >
-                  {NEXT.map((n) => (
-                    <option key={n}>{n}</option>
-                  ))}
-                </select>
-                <Button onClick={() => act("handoff")} className="w-full">
+                <div className="rounded-2xl border-2 border-line bg-paper-2/60 p-4" aria-live="polite">
+                  <p className="text-xs text-muted">引き継ぎ先</p>
+                  {to ? (
+                    <>
+                      <p className="mt-0.5 text-lg font-bold leading-7">{to}</p>
+                      {toUrl && (
+                        <a href={toUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-wood-dark underline underline-offset-4">
+                          公式ページを開く
+                          <span className="sr-only">（新しいタブで開きます）</span>
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <p className="mt-0.5 text-base leading-7 text-muted">まだ決めていません。下から、選んでください。</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant={mode === "find" ? "primary" : "quiet"} className="min-h-12 px-3 text-base" onClick={() => setMode(mode === "find" ? "none" : "find")} aria-expanded={mode === "find"}>
+                    相談先をさがす
+                  </Button>
+                  <Button variant={mode === "list" ? "primary" : "quiet"} className="min-h-12 px-3 text-base" onClick={() => setMode(mode === "list" ? "none" : "list")} aria-expanded={mode === "list"}>
+                    一覧から選ぶ
+                  </Button>
+                </div>
+
+                {mode === "find" && (
+                  <FindWindows
+                    embedded
+                    audience="window"
+                    whats={termsFrom(data.view.fields.what?.value, FINDER_WHATS)}
+                    helps={termsFrom(data.view.fields.help?.value, FINDER_HELPS)}
+                    pickedName={to}
+                    onPick={(c: Found) => {
+                      setTo(c.name);
+                      setToUrl(c.verified ? c.url : undefined);
+                    }}
+                  />
+                )}
+                {mode === "list" && (
+                  <div className="space-y-2">
+                    <label className="sr-only" htmlFor="to">
+                      引き継ぎ先
+                    </label>
+                    <select
+                      id="to"
+                      value={NEXT.includes(to) ? to : ""}
+                      onChange={(e) => {
+                        setTo(e.target.value);
+                        setToUrl(undefined);
+                      }}
+                      className="w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none"
+                    >
+                      <option value="" disabled>
+                        例から選ぶ
+                      </option>
+                      {NEXT.map((n) => (
+                        <option key={n}>{n}</option>
+                      ))}
+                    </select>
+                    <label htmlFor="to-custom" className="block text-sm font-semibold">
+                      ほかの窓口の名前
+                    </label>
+                    <input
+                      id="to-custom"
+                      value={custom}
+                      maxLength={40}
+                      onChange={(e) => {
+                        setCustom(e.target.value);
+                        setTo(e.target.value);
+                        setToUrl(undefined);
+                      }}
+                      className="w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                <Button onClick={() => act("handoff")} className="w-full" disabled={!to.trim()}>
                   <IconSend className="h-5 w-5" />
-                  引き継ぐ
+                  この相談先に、引き継ぐ
                 </Button>
+                <p className="text-xs leading-6 text-muted">次の窓口には、本人が選んだ範囲だけが、渡ります。</p>
               </div>
             ) : (
               <p className="mt-2 pl-12 text-sm leading-7 text-muted">本人が「合っている」と答えた後に、使えるようになります。</p>
@@ -291,7 +362,7 @@ export default function WindowView({ token }: { token: string }) {
             {handedOff && (
               <div className="mt-4 pl-12">
                 <Notice tone="ok" role="status">
-                  <p className="font-semibold">引き継ぎを記録しました。</p>
+                  <p className="font-semibold">引き継ぎを記録しました。{to ? `（${to}）` : ""}</p>
                   <p className="mt-1 text-sm leading-7">
                     次の相談先には、本人から、画面か紙で渡してもらうのが基本です。窓口用の画面で見てもらう場合は、このページのリンクを、お渡しください。
                   </p>

@@ -41,6 +41,15 @@ const KINDS = ["市区町村", "都道府県", "国"] as const;
 const HELPS = ["話を聞いてほしい", "手続きを一緒にしてほしい", "どこに相談すればよいか知りたい", "代わりに伝えてほしい", "まだ分からない"];
 const WHATS = ["お金のこと", "住まいのこと", "仕事・学校のこと", "家族のこと", "体や心の調子", "手続きが分からない", ...WHAT_MORE];
 
+export const FINDER_WHATS = WHATS;
+export const FINDER_HELPS = HELPS;
+
+/** 手帳の項目の値（「、」でつなげた文字）から、探索に使える選択肢だけを取り出す。本人の言葉は、使わない。 */
+export function termsFrom(value: string | undefined, allowed: string[]): string[] {
+  if (!value) return [];
+  return value.split(/[、,]/).map((x) => x.trim()).filter((x) => allowed.includes(x));
+}
+
 /** 公的な窓口のドメインだけ。IPアドレスや、似せた名前は通さない。 */
 export function isAllowedHost(host: string): boolean {
   const h = host.toLowerCase();

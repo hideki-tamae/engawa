@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IconArrow, IconCheck, IconLock, IconSpark } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 
-interface Found {
+export interface Found {
   name: string;
   kind: string;
   what: string;
@@ -18,7 +18,21 @@ interface Found {
  * 送るのは、選んだ「困りごとの種類」と、任意の市区町村だけ。あなたの言葉は、送らない。
  * AI が探した候補は、リンク先を実際に開いて確かめ、確かめられたものだけリンクを出す。
  */
-export default function FindWindows({ whats, helps }: { whats: string[]; helps: string[] }) {
+export default function FindWindows({
+  whats,
+  helps,
+  audience = "person",
+  embedded = false,
+  onPick,
+  pickedName,
+}: {
+  whats: string[];
+  helps: string[];
+  audience?: "person" | "window";
+  embedded?: boolean;
+  onPick?: (c: Found) => void;
+  pickedName?: string;
+}) {
   const [area, setArea] = useState("");
   const [state, setState] = useState<"idle" | "busy" | "done" | "error" | "bad">("idle");
   const [items, setItems] = useState<Found[]>([]);
@@ -37,8 +51,8 @@ export default function FindWindows({ whats, helps }: { whats: string[]; helps: 
   }
 
   return (
-    <section className="mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft" aria-labelledby="find-h">
-      <h2 id="find-h" className="flex items-center gap-2 text-lg font-bold">
+    <section className={embedded ? "mt-3" : "mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft"} aria-labelledby="find-h">
+      <h2 id="find-h" className={`flex items-center gap-2 text-lg font-bold ${embedded ? "sr-only" : ""}`}>
         <IconSpark className="h-5 w-5 text-wood" />
         次の相談先を探す
       </h2>
@@ -47,7 +61,9 @@ export default function FindWindows({ whats, helps }: { whats: string[]; helps: 
       </p>
       <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-muted">
         <IconLock className="mt-1 h-4 w-4 shrink-0" />
-        送るのは、あなたが選んだ「困りごとの種類」と、下の市区町村（任意）だけです。あなたの言葉は、送りません。
+        {audience === "window"
+          ? "送るのは、本人が見せた「困りごとの種類」と、下の市区町村（任意）だけです。本人の言葉は、送りません。"
+          : "送るのは、あなたが選んだ「困りごとの種類」と、下の市区町村（任意）だけです。あなたの言葉は、送りません。"}
       </p>
 
       <label htmlFor="area" className="mt-4 block text-sm font-semibold">
@@ -133,6 +149,22 @@ export default function FindWindows({ whats, helps }: { whats: string[]; helps: 
                       )}
                     </div>
                   )}
+                  {onPick && (
+                    <Button
+                      variant={pickedName === c.name ? "primary" : "quiet"}
+                      className="mt-3 w-full"
+                      onClick={() => onPick(c)}
+                    >
+                      {pickedName === c.name ? (
+                        <>
+                          <IconCheck className="h-5 w-5" />
+                          引き継ぎ先に、選んでいます
+                        </>
+                      ) : (
+                        "ここを、引き継ぎ先にする"
+                      )}
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -140,7 +172,7 @@ export default function FindWindows({ whats, helps }: { whats: string[]; helps: 
           <p className="mt-4 text-xs leading-6 text-muted">
             AI が探し、リンク先を実際に開いて確かめました
             {checkedAt ? `（${new Date(checkedAt).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}）` : ""}。
-            窓口の受付時間や電話番号は、必ず公式ページで確認してください。この候補は、あなたが選ぶまで、保存も共有もされません。
+            窓口の受付時間や電話番号は、必ず公式ページで確認してください。この候補は、選ぶまで、保存も共有もされません。
           </p>
         </div>
       )}

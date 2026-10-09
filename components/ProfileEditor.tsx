@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IconCheck, IconLock } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 import { PROFILE_FIELDS, type Profile } from "@/lib/profile";
-import { clearProfile, saveProfile, useProfile } from "@/lib/profile-client";
+import { clearProfile, hasConsent, saveConsent, saveProfile, useProfile } from "@/lib/profile-client";
 
 /** 窓口で毎回書く基本情報を、この端末にだけ残しておく。任意。サーバーには送らない。 */
 export default function ProfileEditor() {
@@ -13,14 +13,20 @@ export default function ProfileEditor() {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const start = () => {
     setDraft({ ...(saved ?? {}) });
     setError(null);
+    setAgreed(hasConsent());
     setEditing(true);
   };
 
   const save = () => {
+    if (!agreed) {
+      setError("下の「同意する」に、チェックを入れてください。");
+      return;
+    }
     const r = saveProfile(draft);
     if (!r.ok) {
       setError(
@@ -30,6 +36,7 @@ export default function ProfileEditor() {
       );
       return;
     }
+    saveConsent(true);
     setEditing(false);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 4000);
@@ -97,13 +104,27 @@ export default function ProfileEditor() {
           />
         </div>
       ))}
+      <details className="mt-5 rounded-2xl border border-line bg-paper-2 p-4">
+        <summary className="cursor-pointer text-base font-semibold">個人情報の取り扱いについて（開く）</summary>
+        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-7">
+          <li>入れた情報は、このスマホの中だけに保存します。ほかには送りません。</li>
+          <li>窓口に見せるのは、「基本情報も見せる」を、あなたが押したときだけです。</li>
+          <li>スマホをなくしたり、ほかの人が使うと、見られることがあります。画面ロックを、おすすめします。</li>
+          <li>「この端末から消す」で、いつでも消せます。</li>
+          <li>マイナンバーや、身分証の番号は、入れないでください。</li>
+        </ul>
+      </details>
+      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-line p-4 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-wood">
+        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-5 w-5 shrink-0" />
+        <span className="text-base leading-7">上の内容を読んで、同意します。</span>
+      </label>
       {error && (
         <div className="mt-4">
           <Notice tone="warn" role="alert">{error}</Notice>
         </div>
       )}
       <div className="mt-5 flex gap-3">
-        <Button type="submit" className="flex-1">保存する</Button>
+        <Button type="submit" className="flex-1" disabled={!agreed}>保存する</Button>
         <Button variant="ghost" onClick={() => setEditing(false)}>やめる</Button>
       </div>
     </form>

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { type Profile, parseProfile, validateProfile } from "./profile";
 
 const KEY = "engawa_profile";
+const CONSENT_KEY = "engawa_profile_consent";
 const EVT = "engawa-profile-change";
 
 function readRaw(): string | null {
@@ -47,8 +48,27 @@ export function saveProfile(p: unknown): { ok: true } | { ok: false; reason: "in
 export function clearProfile() {
   try {
     localStorage.removeItem(KEY);
+    localStorage.removeItem(CONSENT_KEY);
   } catch {
     /* 何もしない */
   }
   window.dispatchEvent(new Event(EVT));
+}
+
+/** 同意した日時（この端末の中だけ）。同意がないと、保存できない。 */
+export function hasConsent(): boolean {
+  try {
+    return !!localStorage.getItem(CONSENT_KEY);
+  } catch {
+    return false;
+  }
+}
+
+export function saveConsent(on: boolean) {
+  try {
+    if (on) localStorage.setItem(CONSENT_KEY, new Date().toISOString());
+    else localStorage.removeItem(CONSENT_KEY);
+  } catch {
+    /* 何もしない */
+  }
 }
