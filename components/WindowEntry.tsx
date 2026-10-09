@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Qr from "@/components/Qr";
 import { IconBack } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 import { extractToken } from "@/lib/token-link";
@@ -40,6 +41,11 @@ export default function WindowEntry() {
   const [linkError, setLinkError] = useState(false);
   const [sampleBusy, setSampleBusy] = useState(false);
   const [sampleError, setSampleError] = useState(false);
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrigin(window.location.origin);
+  }, []);
 
   async function openSample() {
     setSampleBusy(true);
@@ -84,6 +90,14 @@ export default function WindowEntry() {
         <p className="mt-2 text-base leading-8">
           本人に、「窓口に画面を見せる」を開いてもらいます。<strong>画面の下に、窓口の方向けの QR</strong> があります。ご自身の端末で読み取って、ログインします。
         </p>
+        {origin && (
+          <div className="mt-4 rounded-2xl border border-line bg-white p-4 text-center">
+            <Qr value={`${origin}/window/sample`} label="サンプルの QR" size={176} />
+            <p className="mt-2 text-sm leading-7 text-muted">
+              試してみる：スマホで読み取ると、<strong>作り話のサンプルの手帳</strong>が開きます。実際の手帳では、本人の画面に出る QR を読み取ります。
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="mt-4 rounded-3xl border border-line bg-paper p-5" aria-labelledby="o2">

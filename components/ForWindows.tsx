@@ -75,8 +75,18 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
         同じ話を、最初から聞き直す手間を、減らせるかもしれません。
       </p>
 
-      <nav aria-label="このページの内容" className="mt-6 grid gap-3">
-        <Link href="/window" className={buttonClass("primary", "w-full whitespace-nowrap")}>手帳を受け取る</Link>
+      <section aria-labelledby="login-h" className="mt-6 rounded-3xl border-2 border-wood bg-paper p-5 shadow-soft">
+        <h2 id="login-h" className="text-lg font-bold">試用の窓口の方（ログイン）</h2>
+        <p className="mt-1 text-base leading-8 text-ink">
+          ログインは、<strong>手帳を開いたときに</strong>出ます。まず、作り話のサンプルで、読む・確かめる・引き継ぐを試せます。
+        </p>
+        <Link href="/window/sample" className={buttonClass("primary", "mt-3 w-full")}>
+          ログインして試す（サンプル）
+        </Link>
+      </section>
+
+      <nav aria-label="このページの内容" className="mt-4 grid gap-3">
+        <Link href="/window" className={buttonClass("quiet", "w-full whitespace-nowrap")}>手帳を受け取る（リンク・QR）</Link>
         <a href="#receive" className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
         <a href="#pilot-h" className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
       </nav>
