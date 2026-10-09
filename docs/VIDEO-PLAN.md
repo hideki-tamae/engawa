@@ -63,7 +63,7 @@ Warm hand-painted 2D animation style, soft paper texture, gentle afternoon light
 
 ## 公開（YouTube）
 - 3分以内（目安）。限定公開でも可。審査員が見られる設定にする。
-- 説明欄に：AI の使用（Gemini、Flow、画像生成、Claude Code）、イメージ映像・絵は AI 生成であること、**現時点では、提携や連携がないこと**、リポジトリ、公開URL。
+- 説明欄に：AI の使用（Gemini、Flow、画像生成、Claude Code）、イメージ映像・絵は AI 生成であること、**構成図の見た目は、画像生成で整えたこと（内容は、実装と照らして確認済み）**、**現時点では、提携や連携がないこと**、リポジトリ、公開URL。
 - 字幕（日本語）を付ける。
 
 ## 所要の目安
