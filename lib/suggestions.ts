@@ -21,7 +21,7 @@ export const WHAT_MORE: string[] = ENABLE_MORE_WHAT
   : [];
 
 /** 安全に関わる選択肢。選ぶと、すぐに、公的な相談先と、画面を閉じるボタンを出す。 */
-export const SAFETY_OPTION = "身の安全が心配なこと（DV・虐待など）";
+export const SAFETY_OPTION = "身の安全が心配（DV・虐待）";
 
 export const COMMON_OPTIONS: Record<FieldKey, string[]> = {
   when: ["今日・最近のこと", "ここ数か月", "前からずっと", "いつからか分からない"],

@@ -7,7 +7,7 @@ export default function SafetyPanel() {
   return (
     <div className="mt-5" role="region" aria-label="安全のための案内">
       <Notice tone="warn" role="alert">
-        <p className="text-xl font-bold leading-8">あぶないときは、すぐ電話してください</p>
+        <p className="text-xl font-bold leading-8">あぶないときは、すぐ電話を</p>
         <EmergencyList items={EMERGENCY_RESOURCES} />
         <p className="mt-3 text-base leading-8">
           先に電話で相談しても、だいじょうぶです。

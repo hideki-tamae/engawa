@@ -751,7 +751,7 @@ export default function PersonFlow() {
       {notice && notice.verdict === "escalate" && (
         <div className="mb-6">
           <Notice tone="warn" role="alert">
-            <p className="text-xl font-bold leading-8">あぶないときは、すぐ電話してください</p>
+            <p className="text-xl font-bold leading-8">あぶないときは、すぐ電話を</p>
             <EmergencyList items={notice.resources} />
           </Notice>
         </div>
