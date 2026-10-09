@@ -100,50 +100,45 @@ function Scene({ step, field }: { step: Step; field?: Field }) {
     return (
       <>
         {GROUND}
-        {/* 雨 */}
-        <g stroke="#9bb7c6" strokeWidth="2.4" strokeLinecap="round">
-          <path d="M58 14 l-4 10 M84 6 l-4 10 M222 8 l-4 10 M248 16 l-4 10 M70 40 l-4 10 M240 42 l-4 10" />
+        {/* 日ざし */}
+        <circle cx="252" cy="26" r="12" fill="#f2b84b" opacity="0.9" />
+        <g stroke="#f2b84b" strokeWidth="2.6" strokeLinecap="round" opacity="0.9">
+          <path d="M252 6 v-3 M252 46 v3 M232 26 h-3 M272 26 h3 M238 12 l-2 -2 M266 12 l2 -2" />
         </g>
-        {/* 日がさ：柄まで、はっきり */}
-        <path d="M150 33 V58 q0 8 -9 8 q-7 0 -7 -6" fill="none" stroke="#7a5a2f" strokeWidth="4" strokeLinecap="round" />
-        <path d="M90 36 Q150 -6 210 36 Q198 29 185 36 Q172 29 160 36 Q150 29 140 36 Q128 29 115 36 Q102 29 90 36 Z" fill="#c0463c" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
-        <path d="M150 12 V9" stroke="#7a5a2f" strokeWidth="3.5" strokeLinecap="round" />
-        {/* おやがえると、こがえる。手をつなぐ */}
-        <path d="M137 61 H168" stroke="#4f8a3c" strokeWidth="4.5" strokeLinecap="round" />
-        <g transform="translate(122 56)" strokeLinejoin="round" strokeLinecap="round">
-          <ellipse cx="-9" cy="14" rx="7" ry="3.4" fill="#8fcf7a" stroke="#4f8a3c" strokeWidth="2.2" />
-          <ellipse cx="9" cy="14" rx="7" ry="3.4" fill="#8fcf7a" stroke="#4f8a3c" strokeWidth="2.2" />
-          <circle cx="0" cy="0" r="15" fill="#8fcf7a" stroke="#4f8a3c" strokeWidth="2.4" />
-          <ellipse cx="0" cy="5" rx="9" ry="7" fill="#e3f4d6" />
-          <circle cx="-7" cy="-12" r="6.2" fill="#fffdf8" stroke="#4f8a3c" strokeWidth="2.2" />
-          <circle cx="7" cy="-12" r="6.2" fill="#fffdf8" stroke="#4f8a3c" strokeWidth="2.2" />
-          <circle cx="-6.4" cy="-11.4" r="2.6" fill="#2d2418" />
-          <circle cx="7.6" cy="-11.4" r="2.6" fill="#2d2418" />
-          <circle cx="-5.6" cy="-12.4" r="0.9" fill="#fffdf8" />
-          <circle cx="8.4" cy="-12.4" r="0.9" fill="#fffdf8" />
-          <path d="M-5 3 Q0 8.5 5 3" fill="none" stroke="#2d2418" strokeWidth="2" />
-          <circle cx="-11" cy="3" r="2.6" fill="#f6a8a0" />
-          <circle cx="11" cy="3" r="2.6" fill="#f6a8a0" />
+        {/* じょうろ（水を、やさしくそそぐ） */}
+        <g transform="rotate(16 80 50)" strokeLinejoin="round" strokeLinecap="round">
+          <path d="M62 44 q-16 0 -16 13 q0 9 16 9" fill="none" stroke="#7a5a2f" strokeWidth="3.4" />
+          <path d="M96 49 L120 32" stroke="#7a5a2f" strokeWidth="9" />
+          <path d="M96 49 L120 32" stroke="#9cc4e0" strokeWidth="5" />
+          <ellipse cx="122" cy="30.5" rx="6.2" ry="3.4" transform="rotate(-36 122 30.5)" fill="#cfe6f5" stroke="#7a5a2f" strokeWidth="2.4" />
+          <rect x="60" y="38" width="38" height="29" rx="8" fill="#9cc4e0" stroke="#7a5a2f" strokeWidth="3" />
+          <path d="M68 46 h12" stroke="#fffdf8" strokeWidth="3" opacity="0.7" />
         </g>
-        <g transform="translate(180 60) scale(0.78)" strokeLinejoin="round" strokeLinecap="round">
-          <ellipse cx="-9" cy="14" rx="7" ry="3.4" fill="#a9db97" stroke="#4f8a3c" strokeWidth="2.6" />
-          <ellipse cx="9" cy="14" rx="7" ry="3.4" fill="#a9db97" stroke="#4f8a3c" strokeWidth="2.6" />
-          <circle cx="0" cy="0" r="15" fill="#a9db97" stroke="#4f8a3c" strokeWidth="2.8" />
-          <ellipse cx="0" cy="5" rx="9" ry="7" fill="#eefadf" />
-          <circle cx="-7" cy="-12" r="6.2" fill="#fffdf8" stroke="#4f8a3c" strokeWidth="2.6" />
-          <circle cx="7" cy="-12" r="6.2" fill="#fffdf8" stroke="#4f8a3c" strokeWidth="2.6" />
-          <circle cx="-6" cy="-11" r="2.8" fill="#2d2418" />
-          <circle cx="8" cy="-11" r="2.8" fill="#2d2418" />
-          <circle cx="-5" cy="-12" r="1" fill="#fffdf8" />
-          <circle cx="9" cy="-12" r="1" fill="#fffdf8" />
-          <path d="M-5 3 Q0 9 5 3" fill="none" stroke="#2d2418" strokeWidth="2.4" />
-          <circle cx="-11" cy="3" r="2.8" fill="#f6a8a0" />
-          <circle cx="11" cy="3" r="2.8" fill="#f6a8a0" />
+        {/* 水 */}
+        <g fill="#8fb8d6">
+          <path d="M132 40 q2 3.4 0 5.4 q-2 -2 0 -5.4 z" />
+          <path d="M138 46 q2 3.4 0 5.4 q-2 -2 0 -5.4 z" />
+          <path d="M128 49 q2 3.4 0 5.4 q-2 -2 0 -5.4 z" />
         </g>
-        <circle cx="153" cy="61" r="3.6" fill="#a9db97" stroke="#4f8a3c" strokeWidth="2" />
-        {/* みずたまり */}
-        <ellipse cx="236" cy="76" rx="16" ry="3.4" fill="#bfe0ee" opacity="0.8" />
-        {SPARK(258, 30, "0.5s")}
+        {/* 芽（すこし、のびている） */}
+        <g strokeLinejoin="round" strokeLinecap="round">
+          <path d="M165 50 V30" stroke="#4f8a3c" strokeWidth="4" fill="none" />
+          <path d="M165 34 C150 34 140 24 142 12 C156 12 166 22 165 34 Z" fill="#8fcf7a" stroke="#4f8a3c" strokeWidth="2.6" />
+          <path d="M165 28 C178 28 188 20 186 9 C173 9 164 17 165 28 Z" fill="#a9db97" stroke="#4f8a3c" strokeWidth="2.6" />
+          <path d="M146 17 q8 4 14 12" fill="none" stroke="#4f8a3c" strokeWidth="1.8" opacity="0.7" />
+        </g>
+        {/* 植木ばち（にっこり） */}
+        <g strokeLinejoin="round" strokeLinecap="round">
+          <path d="M142 56 h46 l-5 17 q-1 3 -4 3 h-28 q-3 0 -4 -3 z" fill="#e0956a" stroke="#7a5a2f" strokeWidth="3" />
+          <rect x="138" y="48" width="54" height="9" rx="4" fill="#eca67b" stroke="#7a5a2f" strokeWidth="3" />
+          <circle cx="156" cy="65" r="2" fill="#2d2418" />
+          <circle cx="174" cy="65" r="2" fill="#2d2418" />
+          <path d="M160 68 q5 4.4 10 0" fill="none" stroke="#2d2418" strokeWidth="2" />
+          <circle cx="151" cy="68" r="2.8" fill="#f6a8a0" />
+          <circle cx="179" cy="68" r="2.8" fill="#f6a8a0" />
+        </g>
+        {SPARK(210, 48, "0.4s")}
+        {SPARK(100, 14, "1.1s")}
       </>
     );
   if (step === "ask")
