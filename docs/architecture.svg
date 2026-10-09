@@ -1,14 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 960" font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif">
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7a5a2f"/></marker>
-    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2f6b3a"/></marker>
   </defs>
-  <rect width="1280" height="800" fill="#fbf6ec"/>
+  <rect width="1280" height="960" fill="#fbf6ec"/>
   <text x="40" y="44" font-size="26" font-weight="700" fill="#2d2418">Engawa（縁側）― 構成図</text>
-  <text x="40" y="70" font-size="14" fill="#5b4a33">実際に動いている構成（2026-10-08）。点線は、これから足すもの。</text>
+  <text x="40" y="70" font-size="14" fill="#5b4a33">実際に動いている構成（2026-10-09）。点線は、これから足すもの。</text>
 
   <!-- Google Cloud project -->
-  <rect x="290" y="92" width="960" height="680" rx="22" fill="#fff" stroke="#7a5a2f" stroke-opacity=".35" stroke-width="2"/>
+  <rect x="290" y="92" width="960" height="800" rx="22" fill="#fff" stroke="#7a5a2f" stroke-opacity=".35" stroke-width="2"/>
   <text x="312" y="122" font-size="15" font-weight="700" fill="#7a5a2f">Google Cloud プロジェクト：engawa-care（東京 asia-northeast1）</text>
 
   <!-- users -->
@@ -20,13 +19,19 @@
 
     <rect x="40" y="262" width="200" height="92" rx="16" fill="#f3ead9" stroke="#7a5a2f" stroke-opacity=".4"/>
     <text x="140" y="296" text-anchor="middle" font-weight="700" fill="#2d2418">窓口（ログインあり）</text>
-    <text x="140" y="320" text-anchor="middle" font-size="13" fill="#5b4a33">読む → 本人に確かめる</text>
-    <text x="140" y="340" text-anchor="middle" font-size="12" fill="#5b4a33">→ 引き継ぐ</text>
+    <text x="140" y="320" text-anchor="middle" font-size="13" fill="#5b4a33">QR／リンクで受け取る</text>
+    <text x="140" y="340" text-anchor="middle" font-size="12" fill="#5b4a33">読む → 確かめる → 引き継ぐ</text>
 
     <rect x="40" y="394" width="200" height="92" rx="16" fill="#f3ead9" stroke="#7a5a2f" stroke-opacity=".4"/>
     <text x="140" y="428" text-anchor="middle" font-weight="700" fill="#2d2418">試用者・審査員</text>
-    <text x="140" y="452" text-anchor="middle" font-size="13" fill="#5b4a33">?trial=1 ／ /rate ／ /how</text>
-    <text x="140" y="472" text-anchor="middle" font-size="12" fill="#5b4a33">時間と完了だけ記録</text>
+    <text x="140" y="452" text-anchor="middle" font-size="13" fill="#5b4a33">サンプルの手帳（作り話）</text>
+    <text x="140" y="472" text-anchor="middle" font-size="12" fill="#5b4a33">?trial=1 ／ /rate ／ /how</text>
+
+    <rect x="40" y="526" width="200" height="104" rx="16" fill="#fff" stroke="#2f6b3a" stroke-opacity=".6" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="140" y="558" text-anchor="middle" font-weight="700" fill="#2f6b3a">端末の中だけ</text>
+    <text x="140" y="582" text-anchor="middle" font-size="12" fill="#5b4a33">基本情報・カバー・書きかけ</text>
+    <text x="140" y="602" text-anchor="middle" font-size="12" fill="#5b4a33">サーバーには送らない</text>
+    <text x="140" y="620" text-anchor="middle" font-size="11.5" fill="#5b4a33">窓口へは、QR の # 以降だけ</text>
   </g>
   <path d="M242 176 H336" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
   <path d="M242 308 H336" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
@@ -34,34 +39,39 @@
   <text x="258" y="166" font-size="11" fill="#7a5a2f">HTTPS</text>
 
   <!-- Cloud Run -->
-  <rect x="340" y="146" width="470" height="526" rx="18" fill="#fbf6ec" stroke="#7a5a2f" stroke-width="2.5"/>
+  <rect x="340" y="146" width="470" height="640" rx="18" fill="#fbf6ec" stroke="#7a5a2f" stroke-width="2.5"/>
   <text x="362" y="176" font-size="17" font-weight="700" fill="#2d2418">Cloud Run：engawa</text>
-  <text x="362" y="196" font-size="12" fill="#5b4a33">Next.js 16 ／ TypeScript ／ 最大2台／未使用時は0台 ／ 512MB</text>
+  <text x="362" y="196" font-size="12" fill="#5b4a33">Next.js 16 ／ TypeScript ／ 最大4台／未使用時は0台 ／ 512MB</text>
 
   <rect x="362" y="214" width="426" height="76" rx="12" fill="#fff" stroke="#d9c9a8"/>
   <text x="378" y="240" font-size="14" font-weight="700" fill="#2d2418">画面</text>
   <text x="378" y="262" font-size="12.5" fill="#5b4a33">本人の流れ（書く→質問→確認→見せ方）／ 手帳カード ／ 窓口 ／</text>
-  <text x="378" y="280" font-size="12.5" fill="#5b4a33">本人の記録 ／ 見せる画面 ／ 紙の照合 ／ 仕組みを見る ／ 採点</text>
+  <text x="378" y="280" font-size="12.5" fill="#5b4a33">窓口の入口 ／ 見せる画面 ／ 紙の照合 ／ 仕組み ／ 個人情報の扱い</text>
 
   <rect x="362" y="302" width="426" height="64" rx="12" fill="#fff" stroke="#d9c9a8"/>
   <text x="378" y="328" font-size="14" font-weight="700" fill="#2d2418">API（Route Handlers）</text>
-  <text x="378" y="350" font-size="12.5" fill="#5b4a33">/api/agent ／ find ／ stt ／ cards ／ window-login ／ trial ／ ratings ／ evals</text>
+  <text x="378" y="348" font-size="12.5" fill="#5b4a33">agent／find／stt／cards／sample／window-login／invite／pilot</text>
 
-  <rect x="362" y="378" width="426" height="176" rx="12" fill="#e6f1e4" stroke="#2f6b3a" stroke-opacity=".55" stroke-width="2"/>
+  <rect x="362" y="378" width="426" height="290" rx="12" fill="#e6f1e4" stroke="#2f6b3a" stroke-opacity=".55" stroke-width="2"/>
   <text x="378" y="404" font-size="14" font-weight="700" fill="#2f6b3a">制御の層（AIに任せない部分）</text>
   <g font-size="12.5" fill="#2d2418">
-    <text x="378" y="428">① 本人の言葉は止めない。個人情報だけ止める。危険は189へ。</text>
-    <text x="378" y="449">② AIの出力を検証：引用は本人の言葉にあるものだけ。診断・推測は外す。</text>
-    <text x="378" y="470">③ 本人の確認がないと、共有も引き継ぎもできない（鍵つき）。</text>
-    <text x="378" y="491">④ 回数制限・入力サイズ制限・窓口のログイン（署名つきセッション）。</text>
-    <text x="378" y="512">⑤ 取り下げたら、窓口も紙の照合も無効になる。</text>
-    <text x="378" y="533">⑥ 相談先の候補は、公的なドメインで、実際に開けたものだけ。</text>
+    <text x="378" y="430">① 本人の言葉は止めない。止めるのは個人情報だけ。</text>
+    <text x="378" y="448" fill="#5b4a33">　 危険を示す言葉は、止めずに相談先を見せる。</text>
+    <text x="378" y="474">② 入口と出口を、Model Armor で検査（攻撃文を止める）。</text>
+    <text x="378" y="492" fill="#5b4a33">　 AIに渡す前・返ってきた後。使えなくても止まらない。</text>
+    <text x="378" y="518">③ AIの出力を検証：引用は本人の言葉にあるものだけ。</text>
+    <text x="378" y="536" fill="#5b4a33">　 診断・推測は外し、通らなければ固定の質問に戻す。</text>
+    <text x="378" y="562">④ 本人の確認がないと、共有も引き継ぎもできない。</text>
+    <text x="378" y="588">⑤ 合鍵は2つ：本人用（見る・取り下げる）／窓口用</text>
+    <text x="378" y="606" fill="#5b4a33">　 （ログインして読む・引き継ぐ。取り下げは、できない）。</text>
+    <text x="378" y="632">⑥ 取り下げると、本文がサーバーから消える。紙の照合も無効。</text>
+    <text x="378" y="658">⑦ 回数制限・入力サイズ制限・署名つきログイン。</text>
   </g>
 
-  <rect x="362" y="566" width="426" height="86" rx="12" fill="#fff" stroke="#d9c9a8"/>
-  <text x="378" y="592" font-size="14" font-weight="700" fill="#2d2418">改ざん検知つきの記録（ハッシュ連鎖）</text>
-  <text x="378" y="614" font-size="12.5" fill="#5b4a33">誰がいつ何をしたかを、ハッシュの連鎖で残す。書き換えは検知できる。</text>
-  <text x="378" y="634" font-size="12.5" fill="#5b4a33">本文は、記録にも、ログにも、入れない。</text>
+  <rect x="362" y="680" width="426" height="86" rx="12" fill="#fff" stroke="#d9c9a8"/>
+  <text x="378" y="706" font-size="14" font-weight="700" fill="#2d2418">改ざん検知つきの記録（ハッシュ連鎖）</text>
+  <text x="378" y="728" font-size="12.5" fill="#5b4a33">誰がいつ何をしたかを、ハッシュの連鎖で残す。書き換えは検知できる。</text>
+  <text x="378" y="748" font-size="12.5" fill="#5b4a33">本文は、記録にも、ログにも、入れない。</text>
 
   <!-- Right: services -->
   <g font-size="14">
@@ -70,52 +80,60 @@
     <text x="898" y="196" font-size="12.5" fill="#5b4a33">次の質問／引用候補／相談先の候補（検索つき）</text>
     <text x="898" y="215" font-size="12" fill="#5b4a33">キーは持たず、実行アカウントの権限で呼ぶ</text>
 
-    <rect x="880" y="256" width="340" height="104" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
-    <text x="898" y="284" font-weight="700" fill="#2d2418">Firestore</text>
-    <text x="898" y="306" font-size="12.5" fill="#5b4a33">handoffs（手帳・記録）：30日で自動削除</text>
-    <text x="898" y="326" font-size="12.5" fill="#5b4a33">trial・ratings（時間・採点）：90日で自動削除</text>
-    <text x="898" y="346" font-size="12" fill="#5b4a33">本人の言葉は、手帳の中だけ。ほかには入れない</text>
+    <rect x="880" y="250" width="340" height="86" rx="14" fill="#fff" stroke="#2f6b3a" stroke-width="2"/>
+    <text x="898" y="278" font-weight="700" fill="#2f6b3a">Model Armor（東京）</text>
+    <text x="898" y="300" font-size="12.5" fill="#5b4a33">プロンプトインジェクションの検出</text>
+    <text x="898" y="319" font-size="12" fill="#5b4a33">AIの入口と出口。月200万トークンまで無料</text>
 
-    <rect x="880" y="384" width="340" height="72" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
-    <text x="898" y="412" font-weight="700" fill="#2d2418">Secret Manager</text>
-    <text x="898" y="434" font-size="12.5" fill="#5b4a33">セッションの署名鍵／デモ用の窓口アカウント</text>
+    <rect x="880" y="354" width="340" height="140" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
+    <text x="898" y="382" font-weight="700" fill="#2d2418">Firestore（東京）</text>
+    <text x="898" y="404" font-size="12.5" fill="#5b4a33">handoffs（手帳・記録）：30日で自動削除</text>
+    <text x="898" y="424" font-size="12.5" fill="#5b4a33">　取り下げで、本文はすぐ削除</text>
+    <text x="898" y="444" font-size="12.5" fill="#5b4a33">pilots（窓口の申込）・invites：180日</text>
+    <text x="898" y="464" font-size="12.5" fill="#5b4a33">trial・ratings（時間・採点）：90日</text>
+    <text x="898" y="484" font-size="12" fill="#5b4a33">本人の言葉は、手帳の中だけ</text>
 
-    <rect x="880" y="480" width="340" height="86" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
-    <text x="898" y="508" font-weight="700" fill="#2d2418">Cloud Logging</text>
-    <text x="898" y="530" font-size="12.5" fill="#5b4a33">構造化ログ：出来事・件数・理由コード・所要時間</text>
-    <text x="898" y="549" font-size="12" fill="#5b4a33">本人の言葉・リンク・コードは、入れない（テスト済み）</text>
+    <rect x="880" y="512" width="340" height="56" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
+    <text x="898" y="538" font-weight="700" fill="#2d2418">Secret Manager</text>
+    <text x="898" y="558" font-size="12.5" fill="#5b4a33">セッションの署名鍵／デモ用の窓口アカウント</text>
 
-    <rect x="880" y="590" width="340" height="62" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6"/>
-    <text x="898" y="616" font-weight="700" fill="#5b4a33">これから：Cloud KMS ＋ Bucket Lock</text>
-    <text x="898" y="637" font-size="12" fill="#5b4a33">先頭ハッシュを外部に固定（運営者も書き換え不可）</text>
+    <rect x="880" y="586" width="340" height="78" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
+    <text x="898" y="612" font-weight="700" fill="#2d2418">Cloud Logging</text>
+    <text x="898" y="634" font-size="12.5" fill="#5b4a33">構造化ログ：出来事・件数・理由コード・所要時間</text>
+    <text x="898" y="653" font-size="12" fill="#5b4a33">本人の言葉・リンク・コードは、入れない（テスト済み）</text>
 
-    <rect x="880" y="664" width="340" height="62" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
-    <text x="898" y="690" font-weight="700" fill="#2d2418">Speech-to-Text（日本語）</text>
-    <text x="898" y="711" font-size="12" fill="#5b4a33">話して入力：文字に直すだけ。音声は保存しない</text>
+    <rect x="880" y="682" width="340" height="62" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2"/>
+    <text x="898" y="708" font-weight="700" fill="#2d2418">Speech-to-Text（日本語）</text>
+    <text x="898" y="729" font-size="12" fill="#5b4a33">話して入力：文字に直すだけ。音声は保存しない</text>
+
+    <rect x="880" y="762" width="340" height="62" rx="14" fill="#fff" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6"/>
+    <text x="898" y="788" font-weight="700" fill="#5b4a33">これから：Cloud KMS ＋ Bucket Lock</text>
+    <text x="898" y="809" font-size="12" fill="#5b4a33">先頭ハッシュを外部に固定（運営者も書き換え不可）</text>
   </g>
   <path d="M812 190 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
-  <path d="M812 310 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
-  <path d="M878 420 H812" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
-  <path d="M812 522 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
-  <path d="M812 620 H878" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#a)"/>
-  <path d="M812 688 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path d="M812 292 H878" stroke="#2f6b3a" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path d="M812 424 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path d="M878 540 H812" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
+  <path d="M812 626 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)"/>
+  <path d="M812 712 H878" stroke="#7a5a2f" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path d="M812 793 H878" stroke="#7a5a2f" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#a)"/>
 
   <!-- build chain -->
   <g font-size="13">
-    <rect x="40" y="560" width="200" height="62" rx="14" fill="#f3ead9" stroke="#7a5a2f" stroke-opacity=".4"/>
-    <text x="140" y="588" text-anchor="middle" font-weight="700" fill="#2d2418">GitHub（非公開）</text>
-    <text x="140" y="608" text-anchor="middle" font-size="12" fill="#5b4a33">hideki-tamae/engawa</text>
+    <rect x="40" y="806" width="200" height="62" rx="14" fill="#f3ead9" stroke="#7a5a2f" stroke-opacity=".4"/>
+    <text x="140" y="834" text-anchor="middle" font-weight="700" fill="#2d2418">GitHub（非公開）</text>
+    <text x="140" y="854" text-anchor="middle" font-size="12" fill="#5b4a33">hideki-tamae/engawa</text>
 
-    <rect x="318" y="700" width="150" height="62" rx="12" fill="#fff" stroke="#7a5a2f" stroke-opacity=".6"/>
-    <text x="393" y="728" text-anchor="middle" font-weight="700" fill="#2d2418">Cloud Build</text>
-    <text x="393" y="748" text-anchor="middle" font-size="12" fill="#5b4a33">イメージを作る</text>
-    <rect x="500" y="700" width="150" height="62" rx="12" fill="#fff" stroke="#7a5a2f" stroke-opacity=".6"/>
-    <text x="575" y="728" text-anchor="middle" font-weight="700" fill="#2d2418">Artifact Registry</text>
-    <text x="575" y="748" text-anchor="middle" font-size="12" fill="#5b4a33">イメージの保管</text>
+    <rect x="318" y="806" width="150" height="62" rx="12" fill="#fff" stroke="#7a5a2f" stroke-opacity=".6"/>
+    <text x="393" y="834" text-anchor="middle" font-weight="700" fill="#2d2418">Cloud Build</text>
+    <text x="393" y="854" text-anchor="middle" font-size="12" fill="#5b4a33">イメージを作る</text>
+    <rect x="500" y="806" width="150" height="62" rx="12" fill="#fff" stroke="#7a5a2f" stroke-opacity=".6"/>
+    <text x="575" y="834" text-anchor="middle" font-weight="700" fill="#2d2418">Artifact Registry</text>
+    <text x="575" y="854" text-anchor="middle" font-size="12" fill="#5b4a33">イメージの保管</text>
   </g>
-  <path d="M242 600 C 280 600, 290 731, 316 731" fill="none" stroke="#7a5a2f" stroke-width="2" marker-end="url(#a)"/>
-  <text x="44" y="644" font-size="11.5" fill="#7a5a2f">ソースを Cloud Build へ</text>
-  <path d="M470 731 H498" stroke="#7a5a2f" stroke-width="2" marker-end="url(#a)"/>
-  <path d="M652 731 C 700 731, 700 700, 700 674" fill="none" stroke="#7a5a2f" stroke-width="2" marker-end="url(#a)"/>
-  <text x="708" y="700" font-size="11" fill="#7a5a2f">デプロイ</text>
+  <path d="M242 837 H316" stroke="#7a5a2f" stroke-width="2" marker-end="url(#a)"/>
+  <text x="248" y="826" font-size="11" fill="#7a5a2f">ソース</text>
+  <path d="M470 837 H498" stroke="#7a5a2f" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M652 837 C 700 837, 700 810, 700 788" fill="none" stroke="#7a5a2f" stroke-width="2" marker-end="url(#a)"/>
+  <text x="708" y="822" font-size="11" fill="#7a5a2f">デプロイ</text>
 </svg>
