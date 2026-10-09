@@ -95,6 +95,9 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
             </li>
           ))}
         </ol>
+        <p className="mt-4 text-base leading-8">
+          リンクは、<strong>本人が、手帳を作ったあと</strong>に出ます。メールが使えなくても、<strong>本人の画面の QR を読み取る</strong>だけで、受け取れます。
+        </p>
         <div className="mt-6 rounded-2xl bg-paper-2 p-4">
           <p className="text-base font-bold">本人から「リンク」を受け取ったとき</p>
           <p className="mt-1 text-base leading-8">

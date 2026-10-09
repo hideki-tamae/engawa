@@ -34,3 +34,21 @@ describe("追加した項目（メール・連絡のしかた）", () => {
     expect(r.ok && r.value.memo?.length).toBe(60);
   });
 });
+
+import { profileFromFragment, profileToFragment } from "./profile";
+
+describe("QR で渡す基本情報（#以降）", () => {
+  it("日本語も、往復できる", () => {
+    const p = { name: "山田 花子", address: "東京都渋谷区神宮前1-2-3", phone: "090-1234-5678" };
+    const f = profileToFragment(p);
+    expect(f?.startsWith("#p=")).toBe(true);
+    expect(profileFromFragment(f ?? "")).toEqual(p);
+  });
+  it("マイナンバーのような数字は、つくれない。壊れた文字・長すぎる文字は、読まない", () => {
+    expect(profileToFragment({ name: "123456789012" })).toBeNull();
+    expect(profileFromFragment("#p=!!!")).toBeNull();
+    expect(profileFromFragment("#p=" + "A".repeat(2000))).toBeNull();
+    expect(profileFromFragment("#other=1")).toBeNull();
+    expect(profileToFragment({})).toBeNull();
+  });
+});

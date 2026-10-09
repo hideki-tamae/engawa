@@ -45,3 +45,44 @@ export function parseProfile(raw: string | null): Profile | null {
     return null;
   }
 }
+
+/**
+ * 窓口の端末に、基本情報を、QR で渡す。
+ * URL の「#」以降（フラグメント）に入れる。フラグメントは、サーバーに送られない。窓口の端末の中だけで、読まれる。
+ * 本人が「基本情報も見せる」を選んだときだけ、つくる。
+ */
+export const PROFILE_FRAGMENT_KEY = "p=";
+const MAX_FRAGMENT = 900;
+
+function toBase64Url(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromBase64Url(s: string): string {
+  const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
+export function profileToFragment(p: Profile): string | null {
+  const r = validateProfile(p);
+  if (!r.ok || Object.keys(r.value).length === 0) return null;
+  const enc = toBase64Url(JSON.stringify(r.value));
+  return enc.length <= MAX_FRAGMENT ? `#${PROFILE_FRAGMENT_KEY}${enc}` : null;
+}
+
+export function profileFromFragment(hash: string): Profile | null {
+  try {
+    const h = hash.startsWith("#") ? hash.slice(1) : hash;
+    if (!h.startsWith(PROFILE_FRAGMENT_KEY)) return null;
+    const enc = h.slice(PROFILE_FRAGMENT_KEY.length);
+    if (enc.length === 0 || enc.length > MAX_FRAGMENT) return null;
+    const r = validateProfile(JSON.parse(fromBase64Url(enc)));
+    return r.ok && Object.keys(r.value).length > 0 ? r.value : null;
+  } catch {
+    return null;
+  }
+}

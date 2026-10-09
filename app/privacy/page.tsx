@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { IconBack, IconCheck, IconLock, IconPhone, IconShield } from "@/components/icons";
+import { IconBack, IconCheck, IconLock, IconPhone } from "@/components/icons";
+import PrivacyHero from "@/components/PrivacyHero";
 import { buttonClass } from "@/components/ui";
 
 export const metadata = {
@@ -44,9 +45,7 @@ export default function Page() {
         </Link>
 
         <header className="mt-4 rounded-3xl bg-wood px-6 py-8 text-paper shadow-soft">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-paper/15">
-            <IconShield className="h-7 w-7" />
-          </span>
+          <PrivacyHero className="-mt-2" />
           <h1 className="mt-4 text-3xl font-bold leading-snug">プライバシーポリシー</h1>
           <p className="mt-1 text-base font-semibold text-paper/85">データの取り扱いについて</p>
           <p className="mt-4 text-base leading-8 text-paper/90">
@@ -55,7 +54,7 @@ export default function Page() {
         </header>
 
         <Section n={1} title="取得するデータと保存期間">
-          <p className="text-sm leading-7 text-muted">クラウドサーバー（東京リージョン）で、保存・処理されるデータと、その期間です。期間が過ぎると、自動的に削除されます。</p>
+          <p className="text-sm leading-7 text-muted">クラウドサーバーで、保存・処理されるデータと、その期間です。期間が過ぎると、自動的に削除されます。</p>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {RETENTION.map((r) => (
               <li key={r.title} className="rounded-2xl border border-line bg-paper p-4 shadow-soft">
@@ -104,7 +103,7 @@ export default function Page() {
         </Section>
 
         <p className="mt-10 rounded-2xl bg-paper-2 p-4 text-sm leading-7 text-muted">
-          本ポリシーは、実際のシステムの挙動（コードおよび設定）に基づいて記載しており、仕様の変更にともない、随時更新されます。なお、現段階において、本内容は、法的専門家による確認を受けたものではありません。
+          本ポリシーは、仕様の変更にともない、随時更新されます。
         </p>
 
         <nav className="mt-10 border-t border-line pt-6 text-center" aria-label="もどる">

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import HandbookCard from "@/components/HandbookCard";
 import type { SharedView } from "@/lib/handoff";
 import ProfileShow from "@/components/ProfileShow";
+import { profileToFragment } from "@/lib/profile";
+import { useProfile } from "@/lib/profile-client";
 import Qr from "@/components/Qr";
 import { IconBack } from "@/components/icons";
 import { Notice, buttonClass } from "@/components/ui";
@@ -14,6 +16,8 @@ export default function ShowCard({ token }: { token: string }) {
   const [data, setData] = useState<{ view: SharedView; withdrawn: boolean; windowToken?: string } | null>(null);
   const [missing, setMissing] = useState(false);
   const [origin, setOrigin] = useState("");
+  const profile = useProfile();
+  const [profileShown, setProfileShown] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -63,7 +67,7 @@ export default function ShowCard({ token }: { token: string }) {
           お手数ですが、この内容を読んでから、お話を聞いてください。
         </p>
       </section>
-      <ProfileShow />
+      <ProfileShow onShownChange={setProfileShown} />
       <section className="mx-auto max-w-2xl px-4 pb-8 print:hidden" aria-labelledby="for-staff">
         <div className="rounded-3xl border-2 border-wood bg-paper p-5">
           <h2 id="for-staff" className="text-xl font-bold">窓口の方へ</h2>
@@ -71,11 +75,12 @@ export default function ShowCard({ token }: { token: string }) {
             記録や、次の窓口への引き継ぎは、<strong>ご自身の端末</strong>で、できます。
           </p>
           <div className="mt-3 flex items-center gap-4">
-            <Qr value={`${origin}/window/${data.windowToken ?? token}`} label="読み取って、ログイン" />
+            <Qr value={`${origin}/window/${data.windowToken ?? token}${profileShown && profile ? (profileToFragment(profile) ?? "") : ""}`} label="読み取って、ログイン" />
             <ol className="list-decimal space-y-1.5 pl-5 text-base leading-7">
               <li>QR を、読み取る</li>
               <li>窓口のログイン</li>
               <li>本人に確かめて、引き継ぐ</li>
+              {profileShown && profile && <li className="font-semibold text-wood-dark">基本情報も、一緒に届く</li>}
             </ol>
           </div>
         </div>

@@ -10,6 +10,7 @@ import Timeline from "@/components/Timeline";
 import { IconBuilding, IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 import { FINDER_HELPS, FINDER_WHATS, termsFrom } from "@/lib/finder";
+import { PROFILE_FIELDS, type Profile, profileFromFragment } from "@/lib/profile";
 
 const LABEL: Record<string, string> = {
   what: "どんなこと",
@@ -56,6 +57,8 @@ export default function WindowView({ token }: { token: string }) {
   const [to, setTo] = useState("");
   const [toUrl, setToUrl] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<"none" | "find" | "list">("none");
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileCopied, setProfileCopied] = useState(false);
   const [custom, setCustom] = useState("");
   const [needLogin, setNeedLogin] = useState(false);
   const [user, setUser] = useState("");
@@ -85,6 +88,16 @@ export default function WindowView({ token }: { token: string }) {
   }
 
   useEffect(load, [token]);
+
+  // QR で届いた、本人の基本情報（URL の # 以降）。この端末の中だけで読み、サーバーには送らない。読んだら、URL から消す。
+  useEffect(() => {
+    const p = profileFromFragment(window.location.hash);
+    if (p) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setProfile(p);
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, []);
 
   async function login(e: React.FormEvent) {
     e.preventDefault();
@@ -129,6 +142,10 @@ export default function WindowView({ token }: { token: string }) {
       `本人の言葉：${data.view.statement}`,
     ];
     for (const [k, f] of Object.entries(data.view.fields)) lines.push(`${LABEL[k]}：${f?.value}`);
+    if (profile) {
+      lines.push("", "【本人が見せた基本情報】");
+      for (const f of PROFILE_FIELDS) if (profile[f.key]) lines.push(`${f.label}：${profile[f.key]}`);
+    }
     lines.push("", `取得日時：${new Date().toLocaleString("ja-JP")}`);
     return lines.join("\n");
   }
@@ -228,6 +245,36 @@ export default function WindowView({ token }: { token: string }) {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={confirmed} />
+          {profile && (
+            <section className="mt-4 rounded-3xl border-2 border-wood bg-paper p-5" aria-labelledby="prof-h">
+              <h2 id="prof-h" className="flex items-center gap-2 text-lg font-bold">
+                <IconLock className="h-5 w-5 text-wood" />
+                本人が見せた基本情報
+              </h2>
+              <dl className="mt-3 space-y-2">
+                {PROFILE_FIELDS.filter((f) => profile[f.key]).map((f) => (
+                  <div key={f.key} className="rounded-2xl bg-paper-2 px-4 py-2.5">
+                    <dt className="text-xs text-muted">{f.label}</dt>
+                    <dd className="break-words text-base font-semibold">{profile[f.key]}</dd>
+                  </div>
+                ))}
+              </dl>
+              <Button
+                variant="quiet"
+                className="mt-3 w-full"
+                onClick={() => {
+                  const text = PROFILE_FIELDS.filter((f) => profile[f.key]).map((f) => `${f.label}：${profile[f.key]}`).join("\n");
+                  void navigator.clipboard.writeText(text);
+                  setProfileCopied(true);
+                  setTimeout(() => setProfileCopied(false), 1600);
+                }}
+              >
+                <IconCopy className="h-5 w-5" />
+                {profileCopied ? "コピーしました" : "まとめてコピー"}
+              </Button>
+              <p className="mt-2 text-xs leading-6 text-muted">この端末の画面にだけ、表示しています。サーバーには、送っていません。ページを閉じると、消えます。</p>
+            </section>
+          )}
           <Button
             variant="quiet"
             className="mt-4 w-full"
