@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconLock } from "@/components/icons";
+import { IconCheck, IconLock } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 import { PROFILE_FIELDS, type Profile } from "@/lib/profile";
 import { clearProfile, saveProfile, useProfile } from "@/lib/profile-client";
@@ -12,6 +12,7 @@ export default function ProfileEditor() {
   const [draft, setDraft] = useState<Profile>({});
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
 
   const start = () => {
     setDraft({ ...(saved ?? {}) });
@@ -30,6 +31,8 @@ export default function ProfileEditor() {
       return;
     }
     setEditing(false);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 4000);
   };
 
   if (!editing) {
@@ -40,10 +43,16 @@ export default function ProfileEditor() {
           基本情報（任意）
         </h2>
         <p className="mt-2 text-base leading-8">
-          窓口で毎回書く、名前・住所・電話番号を、このスマホの中だけに残せます。
+          名前・住所・電話番号を、スマホの中だけに残します。
           <br />
-          ほかには送りません。見せるかどうかは、見せるときに選べます。
+          ほかには送りません。見せるかどうかは、そのつど選べます。
         </p>
+        {justSaved && (
+          <p className="mt-3 flex items-center gap-2 text-base font-bold text-ok" role="status">
+            <IconCheck className="h-5 w-5" />
+            保存しました
+          </p>
+        )}
         {saved && (
           <p className="mt-2 text-sm leading-7 text-muted">
             保存してある項目: {PROFILE_FIELDS.filter((f) => saved[f.key]).map((f) => f.label).join("、")}

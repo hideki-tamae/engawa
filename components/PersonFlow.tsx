@@ -475,7 +475,7 @@ export default function PersonFlow() {
             </span>
             <h1 className="mt-4 text-3xl font-bold">手帳ができました</h1>
             <p className="mt-2 text-base leading-8 text-muted">
-              あなたの言葉のまま、窓口に見せられます。
+              これで完成です。あなたの言葉のまま、窓口に見せられます。
               <br />
               受け取るかどうかは、窓口によります。
             </p>
@@ -500,34 +500,6 @@ export default function PersonFlow() {
                 <CoverPicker />
               </div>
             )}
-          </div>
-
-          <div className="mt-8 rounded-3xl border border-line bg-paper-2 p-5">
-            <button
-              type="button"
-              className="flex min-h-11 w-full items-center justify-between text-left text-lg font-bold"
-              aria-expanded={prepOpen}
-              onClick={() => setPrepOpen((v) => !v)}
-            >
-              窓口に行く前に
-              <span aria-hidden className="text-wood">{prepOpen ? "閉じる" : "見る"}</span>
-            </button>
-            {prepOpen && (
-              <div className="mt-3 text-base leading-8">
-                <p className="text-sm leading-7 text-muted">窓口によって、ちがいます。行く前に、電話か公式ページで、聞いてください。</p>
-                <ul className="mt-3 list-disc space-y-1.5 pl-6">
-                  <li>この手帳（スマホの画面か、紙）</li>
-                  <li>本人だと分かるもの（免許証、保険証、パスポートなど）</li>
-                  <li>住所が分かるもの（公共料金の通知など）</li>
-                  <li>相談に関係する書類</li>
-                  <li>印鑑（いる窓口もあります）</li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <ProfileEditor />
           </div>
 
           {showLink && (
@@ -666,6 +638,35 @@ export default function PersonFlow() {
             )}
           </ul>
 
+          <h2 className="mt-10 text-lg font-bold text-ink">あとからでも、だいじょうぶ（任意）</h2>
+          <div className="mt-4 rounded-3xl border border-line bg-paper-2 p-5">
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center justify-between text-left text-lg font-bold"
+              aria-expanded={prepOpen}
+              onClick={() => setPrepOpen((v) => !v)}
+            >
+              窓口に行く前に
+              <span aria-hidden className="text-wood">{prepOpen ? "閉じる" : "見る"}</span>
+            </button>
+            {prepOpen && (
+              <div className="mt-3 text-base leading-8">
+                <p className="text-sm leading-7 text-muted">窓口によって、ちがいます。行く前に、電話か公式ページで、聞いてください。</p>
+                <ul className="mt-3 list-disc space-y-1.5 pl-6">
+                  <li>この手帳（スマホの画面か、紙）</li>
+                  <li>本人だと分かるもの（免許証、保険証、パスポートなど）</li>
+                  <li>住所が分かるもの（公共料金の通知など）</li>
+                  <li>相談に関係する書類</li>
+                  <li>印鑑（いる窓口もあります）</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8">
+            <ProfileEditor />
+          </div>
+
           {trial && (
             <div className="mt-10 rounded-3xl border border-sun/70 bg-[#fff3d1] p-5 text-center">
               <p className="font-semibold">試用に、ご協力ありがとうございます。</p>
@@ -675,9 +676,10 @@ export default function PersonFlow() {
               </a>
             </div>
           )}
-          <div className="mt-10 text-center">
-            <Button variant="ghost" onClick={restart}>
-              新しい手帳を作る
+          <div className="mt-12 border-t border-line pt-6 text-center">
+            <p className="text-sm leading-7 text-muted">この手帳は、これで完成です。ちがう困りごとを書くときだけ、押してください。</p>
+            <Button variant="ghost" className="mt-1" onClick={restart}>
+              ちがう手帳を、新しく作る
             </Button>
           </div>
         </div>
