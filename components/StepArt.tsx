@@ -3,6 +3,7 @@
  * 小さく、静かに。画面が低い端末（キーボードが出ているとき）は、出さない。
  */
 type Step = "write" | "ask" | "confirm" | "scope";
+type Field = "when" | "where" | "what" | "help";
 
 const GROUND = (
   <>
@@ -15,7 +16,7 @@ const SPARK = (x: number, y: number, d: string) => (
   <path className="anim-twinkle" style={{ animationDelay: d, transformBox: "fill-box", transformOrigin: "center" }} fill="#f2b84b" d={`M${x} ${y} l2.5 5 5 2.5 -5 2.5 -2.5 5 -2.5 -5 -5 -2.5 5 -2.5 z`} />
 );
 
-function Scene({ step }: { step: Step }) {
+function Scene({ step, field }: { step: Step; field?: Field }) {
   if (step === "write")
     return (
       <>
@@ -33,6 +34,80 @@ function Scene({ step }: { step: Step }) {
           <path d="M192 34 L180 38 L192 42 Z" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="2" strokeLinejoin="round" />
         </g>
         {SPARK(70, 24, "0s")}
+      </>
+    );
+  if (step === "ask" && field === "when")
+    return (
+      <>
+        {SUN}
+        {GROUND}
+        {/* 壁かけカレンダー */}
+        <rect x="96" y="10" width="64" height="56" rx="6" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
+        <rect x="96" y="10" width="64" height="14" rx="6" fill="#a8362f" />
+        <g fill="#d9c9a8">
+          {[0, 1, 2, 3].map((r) => [0, 1, 2, 3].map((c) => <circle key={`${r}${c}`} cx={108 + c * 14} cy={34 + r * 8} r="2.4" />))}
+        </g>
+        <circle cx="122" cy="42" r="6.5" fill="none" stroke="#a8362f" strokeWidth="2.6" />
+        {/* とけい */}
+        <circle cx="206" cy="38" r="22" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
+        <path d="M206 38 V24 M206 38 L216 44" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" />
+        {SPARK(70, 24, "0s")}
+      </>
+    );
+  if (step === "ask" && field === "where")
+    return (
+      <>
+        {SUN}
+        {GROUND}
+        {/* 家 */}
+        <rect x="62" y="38" width="44" height="28" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
+        <path d="M56 40 L84 18 L112 40 Z" fill="#a8362f" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
+        <rect x="78" y="48" width="12" height="18" fill="#7a5a2f" />
+        {/* 学校 */}
+        <rect x="124" y="30" width="52" height="36" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
+        <path d="M150 30 V14 M150 14 h12 v7 h-12" stroke="#2f6b3a" strokeWidth="3" fill="#2f6b3a" strokeLinejoin="round" />
+        <g fill="#bfe0ee" stroke="#7a5a2f" strokeWidth="2">
+          <rect x="132" y="40" width="10" height="9" />
+          <rect x="158" y="40" width="10" height="9" />
+        </g>
+        {/* 役所・ビル */}
+        <rect x="190" y="24" width="40" height="42" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
+        <g fill="#d9c9a8">
+          <rect x="198" y="32" width="8" height="6" />
+          <rect x="214" y="32" width="8" height="6" />
+          <rect x="198" y="46" width="8" height="6" />
+          <rect x="214" y="46" width="8" height="6" />
+        </g>
+        {SPARK(246, 40, "0.7s")}
+      </>
+    );
+  if (step === "ask" && field === "what")
+    return (
+      <>
+        {SUN}
+        {GROUND}
+        {/* お金・住まい・心 */}
+        <circle cx="106" cy="48" r="17" fill="#f2b84b" stroke="#7a5a2f" strokeWidth="3" />
+        <text x="106" y="55" textAnchor="middle" fontSize="20" fontWeight="700" fill="#7a5a2f">
+          ¥
+        </text>
+        <path d="M150 52 V36 L166 24 L182 36 V52 Z" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M224 56 C196 40 206 22 224 34 C242 22 252 40 224 56 Z" fill="#e8908a" stroke="#a8362f" strokeWidth="3" strokeLinejoin="round" />
+        {SPARK(70, 26, "0s")}
+      </>
+    );
+  if (step === "ask" && field === "help")
+    return (
+      <>
+        {GROUND}
+        {/* 雨と、日がさ */}
+        <g stroke="#9bb7c6" strokeWidth="2.4" strokeLinecap="round">
+          <path d="M86 8 l-4 10 M112 4 l-4 10 M200 8 l-4 10 M232 6 l-4 10" />
+        </g>
+        <path d="M110 40 Q150 -2 190 40 Z" fill="#a8362f" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M150 40 V62 q0 6 -7 6" fill="none" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" />
+        <path d="M150 54 C140 47 144 41 150 46 C156 41 160 47 150 54 Z" fill="#fffdf8" stroke="#a8362f" strokeWidth="2" />
+        {SPARK(220, 30, "0.5s")}
       </>
     );
   if (step === "ask")
@@ -98,14 +173,14 @@ function Scene({ step }: { step: Step }) {
   );
 }
 
-export default function StepArt({ step }: { step: Step }) {
+export default function StepArt({ step, field }: { step: Step; field?: Field }) {
   return (
     <svg
       viewBox="0 0 300 90"
       aria-hidden
       className="mx-auto mb-4 h-auto max-h-24 w-full max-w-[17rem] print:hidden [@media(max-height:700px)]:hidden"
     >
-      <Scene step={step} />
+      <Scene step={step} field={field} />
     </svg>
   );
 }

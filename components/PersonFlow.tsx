@@ -753,7 +753,7 @@ export default function PersonFlow() {
         </button>
       </div>
       {stepIdx !== undefined && <StepDots steps={FLOW_STEPS} current={stepIdx} />}
-      {(step === "write" || step === "ask" || step === "confirm" || step === "scope") && <StepArt step={step} />}
+      {(step === "write" || step === "ask" || step === "confirm" || step === "scope") && <StepArt step={step} field={step === "ask" ? askField : undefined} />}
       {step === "write" && <Guide>急がなくて、大丈夫ですよ。</Guide>}
       {step === "ask" && <Guide>答えたいものだけで、大丈夫です。</Guide>}
       {step === "confirm" && <Guide>違うところがあれば、直せます。</Guide>}
