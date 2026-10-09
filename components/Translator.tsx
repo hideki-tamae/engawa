@@ -85,8 +85,9 @@ function begin(): () => void {
       }
       if (root.nodeType !== Node.ELEMENT_NODE) return;
       const el = root as Element;
-      if (skipped(el)) return;
+      if (el.closest("[data-no-translate]")) return;
       if (ATTRS.some((a) => JP.test(el.getAttribute(a) ?? ""))) pendingAttr.add(el);
+      if (SKIP_TAGS.has(el.tagName)) return; // 入力欄の中身は、触らない（placeholder などの属性だけ、翻訳する）
       el.childNodes.forEach(collect);
     }
 
@@ -170,7 +171,7 @@ function begin(): () => void {
         else if (m.type === "attributes") {
           const el = m.target as Element;
           const name = m.attributeName ?? "";
-          if (!skipped(el) && JP.test(el.getAttribute(name) ?? "") && (attrApplied.get(el) ?? {})[name] !== el.getAttribute(name)) pendingAttr.add(el);
+          if (!el.closest("[data-no-translate]") && JP.test(el.getAttribute(name) ?? "") && (attrApplied.get(el) ?? {})[name] !== el.getAttribute(name)) pendingAttr.add(el);
         } else m.addedNodes.forEach(collect);
       }
       if (pendingText.size > 0 || pendingAttr.size > 0) schedule();
