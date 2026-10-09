@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import Translator from "@/components/Translator";
 
 export const metadata: Metadata = {
   title: "Engawa（縁側）｜困りごとの手帳",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           本文へ移動
         </a>
         {children}
+        <Translator />
       </body>
     </html>
   );

@@ -32,7 +32,7 @@ export default function ProfileShow({ onShownChange }: { onShownChange?: (shown:
               <div key={f.key} className="rounded-2xl bg-paper-2 p-3.5">
                 <div className="min-w-0">
                   <dt className="text-sm text-muted">{f.label}</dt>
-                  <dd className="break-words text-lg font-semibold">{profile[f.key]}</dd>
+                  <dd data-no-translate className="break-words text-lg font-semibold">{profile[f.key]}</dd>
                 </div>
               </div>
             ))}

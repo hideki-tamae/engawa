@@ -23,6 +23,7 @@ import Celebrate from "@/components/Celebrate";
 import EmergencyList from "@/components/EmergencyList";
 import { EyeSwitch, FieldIcon, ScopeDots } from "@/components/ScopeParts";
 import HoldToSeal from "@/components/HoldToSeal";
+import LangSwitch from "@/components/LangSwitch";
 import SafetyPanel from "@/components/SafetyPanel";
 import StepArt from "@/components/StepArt";
 import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
@@ -462,6 +463,8 @@ export default function PersonFlow() {
             <Link href="/privacy" className="inline-flex min-h-11 items-center underline underline-offset-4">
               個人情報の扱い
             </Link>
+            <span aria-hidden className="mx-3">／</span>
+            <LangSwitch />
           </p>
         </div>
       </div>
@@ -864,7 +867,7 @@ export default function PersonFlow() {
           <p className="text-sm font-medium text-muted" aria-live="polite">
             質問 {qi + 1} / {order.length}
           </p>
-          <blockquote className="mt-3 rounded-2xl border-l-4 border-wood/60 bg-paper-2 p-4 text-base leading-8 text-ink">
+          <blockquote data-no-translate className="mt-3 rounded-2xl border-l-4 border-wood/60 bg-paper-2 p-4 text-base leading-8 text-ink">
             {card.statement}
           </blockquote>
           {thinking && qi === 0 && !proposal ? (
@@ -891,7 +894,7 @@ export default function PersonFlow() {
               <p className="text-sm font-medium text-wood-dark">あなたの言葉から。合っていれば、選んでください。</p>
               <div className="mt-3 flex flex-wrap gap-2.5">
                 {proposal.suggestions.map((sg) => (
-                  <Chip key={sg.text} pressed={picks[sg.field].includes(sg.text)} onClick={() => togglePick(sg.field, sg.text)}>
+                  <Chip key={sg.text} data-no-translate pressed={picks[sg.field].includes(sg.text)} onClick={() => togglePick(sg.field, sg.text)}>
                     「{sg.text}」
                   </Chip>
                 ))}

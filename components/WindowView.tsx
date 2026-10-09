@@ -268,7 +268,7 @@ export default function WindowView({ token }: { token: string }) {
                 {PROFILE_FIELDS.filter((f) => profile[f.key]).map((f) => (
                   <div key={f.key} className="rounded-2xl bg-paper-2 px-4 py-2.5">
                     <dt className="text-xs text-muted">{f.label}</dt>
-                    <dd className="break-words text-base font-semibold">{profile[f.key]}</dd>
+                    <dd data-no-translate className="break-words text-base font-semibold">{profile[f.key]}</dd>
                   </div>
                 ))}
               </dl>

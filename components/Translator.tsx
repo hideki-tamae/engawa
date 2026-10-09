@@ -1,0 +1,175 @@
+"use client";
+
+import { useEffect } from "react";
+
+const JP = /[぀-ヿ㐀-鿿]/;
+const KEY = "engawa_lang";
+const CACHE_KEY = "engawa_en_cache_v2";
+const ATTRS = ["placeholder", "aria-label", "title", "alt"] as const;
+const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "INPUT", "CODE"]);
+
+/**
+ * 英語版。URL に ?lang=en を付けると、画面の文字が、英語になる（デザインは同じ）。
+ * 本人が書いた言葉（data-no-translate）は、翻訳しない。翻訳は機械翻訳（Gemini）。
+ * 図（SVG）の中の文字は、はみ出さないよう、短い英語にする。
+ */
+export default function Translator() {
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("lang");
+    try {
+      if (q === "en" || q === "ja") localStorage.setItem(KEY, q);
+    } catch {
+      /* 何もしない */
+    }
+    let lang = q;
+    if (!lang) {
+      try {
+        lang = localStorage.getItem(KEY);
+      } catch {
+        /* 何もしない */
+      }
+    }
+    if (lang !== "en") return;
+
+    document.documentElement.lang = "en";
+    const cache = new Map<string, string>(); // 鍵：日本語。図の中は、先頭に「s:」
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? "{}") as Record<string, string>;
+      for (const [k, v] of Object.entries(saved)) cache.set(k, v);
+    } catch {
+      /* 何もしない */
+    }
+    const applied = new WeakMap<Node, string>();
+    const attrApplied = new WeakMap<Element, Record<string, string>>();
+    const pendingText = new Set<Text>();
+    const pendingAttr = new Set<Element>();
+    let timer: number | null = null;
+    let first = true;
+
+    const style = document.createElement("style");
+    style.textContent = "html[data-en-pending] body{opacity:0}";
+    document.head.appendChild(style);
+    document.documentElement.setAttribute("data-en-pending", "");
+    const reveal = () => document.documentElement.removeAttribute("data-en-pending");
+    const revealTimer = window.setTimeout(reveal, 3500);
+
+    const skipped = (el: Element | null) => !!el && (SKIP_TAGS.has(el.tagName) || !!el.closest("[data-no-translate]"));
+    const inSvg = (el: Element | null) => !!el && !!el.closest("svg");
+    const keyOf = (text: string, svg: boolean) => (svg ? `s:${text}` : text);
+
+    function collect(root: Node) {
+      if (root.nodeType === Node.TEXT_NODE) {
+        const t = root as Text;
+        const v = t.nodeValue ?? "";
+        if (JP.test(v) && v.trim().length > 1 && !skipped(t.parentElement) && applied.get(t) !== v) pendingText.add(t);
+        return;
+      }
+      if (root.nodeType !== Node.ELEMENT_NODE) return;
+      const el = root as Element;
+      if (skipped(el)) return;
+      if (ATTRS.some((a) => JP.test(el.getAttribute(a) ?? ""))) pendingAttr.add(el);
+      el.childNodes.forEach(collect);
+    }
+
+    async function translate(items: { text: string; svg: boolean }[]) {
+      for (const svg of [false, true]) {
+        const need = [...new Set(items.filter((x) => x.svg === svg).map((x) => x.text))].filter((t) => !cache.has(keyOf(t, svg)));
+        for (let i = 0; i < need.length; i += 40) {
+          const chunk = need.slice(i, i + 40);
+          try {
+            const r = await fetch("/api/translate", { method: "POST", body: JSON.stringify({ texts: chunk, short: svg }) });
+            if (!r.ok) continue;
+            const j = (await r.json()) as { translations: string[] };
+            chunk.forEach((t, k) => cache.set(keyOf(t, svg), j.translations[k] ?? t));
+          } catch {
+            /* 失敗したら、日本語のまま */
+          }
+        }
+      }
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries([...cache].slice(-600))));
+      } catch {
+        /* 何もしない */
+      }
+    }
+
+    async function flush() {
+      timer = null;
+      const texts = [...pendingText];
+      const attrEls = [...pendingAttr];
+      pendingText.clear();
+      pendingAttr.clear();
+      const items: { text: string; svg: boolean }[] = [];
+      for (const t of texts) items.push({ text: (t.nodeValue ?? "").trim(), svg: inSvg(t.parentElement) });
+      for (const el of attrEls)
+        for (const a of ATTRS) {
+          const v = el.getAttribute(a);
+          if (v && JP.test(v)) items.push({ text: v.trim(), svg: false });
+        }
+      const title = JP.test(document.title) ? document.title : "";
+      if (title) items.push({ text: title.trim(), svg: false });
+      if (items.length > 0) await translate(items);
+
+      for (const t of texts) {
+        const raw = t.nodeValue ?? "";
+        const en = cache.get(keyOf(raw.trim(), inSvg(t.parentElement)));
+        if (en && t.isConnected) {
+          const next = raw.replace(raw.trim(), en);
+          applied.set(t, next);
+          t.nodeValue = next;
+        }
+      }
+      for (const el of attrEls) {
+        const done = attrApplied.get(el) ?? {};
+        for (const a of ATTRS) {
+          const v = el.getAttribute(a);
+          const en = v ? cache.get(v.trim()) : undefined;
+          if (v && en && done[a] !== v) {
+            done[a] = en;
+            el.setAttribute(a, en);
+          }
+        }
+        attrApplied.set(el, done);
+      }
+      if (title) {
+        const en = cache.get(title.trim());
+        if (en) document.title = en;
+      }
+      if (first) {
+        first = false;
+        reveal();
+      }
+    }
+
+    const schedule = () => {
+      if (timer === null) timer = window.setTimeout(flush, 120);
+    };
+
+    const mo = new MutationObserver((muts) => {
+      for (const m of muts) {
+        if (m.type === "characterData") collect(m.target);
+        else if (m.type === "attributes") {
+          const el = m.target as Element;
+          const name = m.attributeName ?? "";
+          if (!skipped(el) && JP.test(el.getAttribute(name) ?? "") && (attrApplied.get(el) ?? {})[name] !== el.getAttribute(name)) pendingAttr.add(el);
+        } else m.addedNodes.forEach(collect);
+      }
+      if (pendingText.size > 0 || pendingAttr.size > 0) schedule();
+    });
+    mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] });
+
+    collect(document.body);
+    if (pendingText.size === 0 && pendingAttr.size === 0 && !JP.test(document.title)) reveal();
+    else schedule();
+
+    return () => {
+      mo.disconnect();
+      window.clearTimeout(revealTimer);
+      if (timer !== null) window.clearTimeout(timer);
+      reveal();
+      style.remove();
+    };
+  }, []);
+
+  return null;
+}

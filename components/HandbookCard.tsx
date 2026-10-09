@@ -78,12 +78,12 @@ export default function HandbookCard({
       <div className="space-y-5 px-6 py-6">
         <section>
           <p className={`${small} font-medium text-muted`}>本人の言葉</p>
-          <p className={`mt-1.5 ${body} text-ink`}>{statement}</p>
+          <p data-no-translate className={`mt-1.5 ${body} text-ink`}>{statement}</p>
         </section>
         {present.map((k) => (
           <section key={k} className="border-t border-line pt-4">
             <p className={`${small} font-medium text-muted`}>{LABEL[k]}</p>
-            <p className={`mt-1 ${body} text-ink`}>{fields[k]?.value}</p>
+            <p {...(fields[k]?.source === "own_words" ? { "data-no-translate": true } : {})} className={`mt-1 ${body} text-ink`}>{fields[k]?.value}</p>
           </section>
         ))}
       </div>
