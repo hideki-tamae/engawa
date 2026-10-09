@@ -1,4 +1,4 @@
-import { WHAT_MORE } from "./suggestions";
+import { SAFETY_OPTION, WHAT_MORE } from "./suggestions";
 import { screenInput, screenRequest } from "./guardrails";
 
 /**
@@ -39,7 +39,7 @@ export type FetchPage = (url: string) => Promise<{ ok: boolean; status: number; 
 
 const KINDS = ["市区町村", "都道府県", "国"] as const;
 const HELPS = ["話を聞いてほしい", "手続きを一緒にしてほしい", "どこに相談すればよいか知りたい", "代わりに伝えてほしい", "まだ分からない"];
-const WHATS = ["お金のこと", "住まいのこと", "仕事・学校のこと", "家族のこと", "体や心の調子", "手続きが分からない", ...WHAT_MORE];
+const WHATS = ["お金のこと", "住まいのこと", "仕事・学校のこと", "家族のこと", "体や心の調子", "手続きが分からない", SAFETY_OPTION, ...WHAT_MORE];
 
 /** 公的な窓口のドメインだけ。IPアドレスや、似せた名前は通さない。 */
 export function isAllowedHost(host: string): boolean {

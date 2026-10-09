@@ -92,3 +92,20 @@ describe("screenInput（本人の言葉）", () => {
     expect(screenInput("電話は 090-1234-5678 です").verdict).toBe("refuse");
   });
 });
+
+import { telHref as telHref2 } from "./guardrails";
+import { describe as d3, expect as e3, it as i3 } from "vitest";
+import { SAFETY_OPTION } from "./suggestions";
+
+d3("安全に関わる案内", () => {
+  i3("公的な相談先は、確認できた番号だけ（110・119・189・#8008・0120-279-889・#8891）", () => {
+    e3(EMERGENCY_RESOURCES.map((r) => r.contact)).toEqual(["110", "119", "189", "#8008", "0120-279-889", "#8891"]);
+  });
+  i3("電話リンクは、# を %23 に、ハイフンを除く", () => {
+    e3(telHref2("#8008")).toBe("tel:%238008");
+    e3(telHref2("0120-279-889")).toBe("tel:0120279889");
+  });
+  i3("安全の選択肢は、診断や評価の言い回しではない", () => {
+    e3(screenRequest(SAFETY_OPTION).verdict).toBe("allow");
+  });
+});

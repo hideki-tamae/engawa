@@ -38,7 +38,15 @@ export const EMERGENCY_RESOURCES: Resource[] = [
   { label: "警察", contact: "110" },
   { label: "救急", contact: "119" },
   { label: "児童相談所 虐待対応ダイヤル（全国共通・通話無料）", contact: "189" },
+  { label: "DV相談ナビ（最寄りの相談機関につながる。受付時間は機関によります）", contact: "#8008" },
+  { label: "DV相談+（24時間の電話。チャット相談は12:00〜22:00）", contact: "0120-279-889" },
+  { label: "性犯罪・性暴力の相談 全国共通短縮ダイヤル（通話無料）", contact: "#8891" },
 ];
+
+/** 電話をかけるためのリンク（# は %23 にする） */
+export function telHref(contact: string): string {
+  return `tel:${contact.replace(/#/g, "%23").replace(/-/g, "")}`;
+}
 
 const PII_PATTERNS: RegExp[] = [
   /0\d{1,4}[-ー−\s]?\d{1,4}[-ー−\s]?\d{3,4}/, // 電話番号

@@ -19,7 +19,8 @@ import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import CoverPicker from "@/components/CoverPicker";
 import ProfileEditor from "@/components/ProfileEditor";
-import { WHAT_MORE } from "@/lib/suggestions";
+import SafetyPanel from "@/components/SafetyPanel";
+import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
 import FindWindows from "@/components/FindWindows";
 import HandbookCard from "@/components/HandbookCard";
 import { Guide, Mark } from "@/components/Mark";
@@ -901,6 +902,7 @@ export default function PersonFlow() {
                 </Chip>
               ))}
           </div>
+          {askField === "what" && picks.what.includes(SAFETY_OPTION) && <SafetyPanel />}
           {askField === "what" && WHAT_MORE.length > 0 && !moreWhat && !WHAT_MORE.some((o) => picks.what.includes(o)) && (
             <Button variant="ghost" className="mt-2 min-h-11 text-base" onClick={() => setMoreWhat(true)}>
               ほかにもあてはまるものを見る
@@ -968,6 +970,14 @@ export default function PersonFlow() {
             選んだ項目だけが、窓口に見えます。あとから取り下げることもできます。
           </p>
 
+          {card.fields.what?.value.includes(SAFETY_OPTION) && (
+            <div className="mt-4">
+              <Notice tone="warn" role="status">
+                <p className="font-semibold">身の安全が心配とのこと、ここに書いたことが、画面や紙で、周りの人に見える可能性があります。</p>
+                <p className="mt-1 text-sm leading-7">一緒に住む人に見られると危険なときは、見せる範囲に入れないでください。先に、公的な相談窓口に、電話で相談してもかまいません。</p>
+              </Notice>
+            </div>
+          )}
           <ul className="mt-6 space-y-3">
             <li className="flex items-center gap-4 rounded-2xl border border-line bg-paper-2 p-4">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paper text-wood">
