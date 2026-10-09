@@ -1,5 +1,6 @@
 "use client";
 
+import HowHero from "@/components/HowHero";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Step } from "@/lib/demo";
@@ -73,6 +74,9 @@ export default function HowItWorks() {
         <IconBack className="h-4 w-4" />
         手帳にもどる
       </Link>
+      <div className="mt-2">
+        <HowHero />
+      </div>
       <h1 className="mt-4 text-4xl font-bold">仕組みを見る</h1>
       <p className="mt-3 text-base leading-8 text-muted">
         作り話の例で、実際のしくみを順に動かした結果です。見せるために作った結果ではなく、いまこの場で動かした結果を、そのまま並べています。個人の情報は、使っていません。

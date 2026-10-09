@@ -23,6 +23,7 @@ import Celebrate from "@/components/Celebrate";
 import EmergencyList from "@/components/EmergencyList";
 import HoldToSeal from "@/components/HoldToSeal";
 import SafetyPanel from "@/components/SafetyPanel";
+import StepArt from "@/components/StepArt";
 import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
 import FindWindows from "@/components/FindWindows";
 import HandbookCard from "@/components/HandbookCard";
@@ -752,6 +753,7 @@ export default function PersonFlow() {
         </button>
       </div>
       {stepIdx !== undefined && <StepDots steps={FLOW_STEPS} current={stepIdx} />}
+      {(step === "write" || step === "ask" || step === "confirm" || step === "scope") && <StepArt step={step} />}
       {step === "write" && <Guide>急がなくて、大丈夫ですよ。</Guide>}
       {step === "ask" && <Guide>答えたいものだけで、大丈夫です。</Guide>}
       {step === "confirm" && <Guide>違うところがあれば、直せます。</Guide>}
