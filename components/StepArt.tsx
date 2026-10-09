@@ -16,6 +16,85 @@ const SPARK = (x: number, y: number, d: string) => (
   <path className="anim-twinkle" style={{ animationDelay: d, transformBox: "fill-box", transformOrigin: "center" }} fill="#f2b84b" d={`M${x} ${y} l2.5 5 5 2.5 -5 2.5 -2.5 5 -2.5 -5 -5 -2.5 5 -2.5 z`} />
 );
 
+
+/**
+ * 質問のページの絵。やわらかい色の、角丸のタイルに、白い線の絵記号。
+ * 「見せる範囲」の画面と、同じ絵記号（いつ＝カレンダー、どこ＝場所、どんなこと＝ふきだし、してほしいこと＝日がさ）。
+ */
+const GLYPH: Record<Field, React.ReactNode> = {
+  when: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15" rx="3" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+      <circle cx="12" cy="14.5" r="1.5" fill="#fff" stroke="none" />
+    </>
+  ),
+  where: (
+    <>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </>
+  ),
+  what: (
+    <>
+      <path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 4v-4H4A1.5 1.5 0 0 1 2.5 15V7A1.5 1.5 0 0 1 4 5.5z" />
+      <path d="M8 10h8M8 13h5" />
+    </>
+  ),
+  help: (
+    <>
+      <path d="M3 12.5a9 9 0 0 1 18 0c-1.5-1.3-3-1.3-4.5 0c-1.5-1.3-3-1.3-4.5 0c-1.5-1.3-3-1.3-4.5 0c-1.5-1.3-3-1.3-4.5 0z" />
+      <path d="M12 12.5V18a2 2 0 0 1-4 0M12 3.5V2" />
+    </>
+  ),
+};
+
+const TILE_COLORS: Record<Field, [string, string]> = {
+  when: ["#b58a4a", "#7a5a2f"],
+  where: ["#7ea36a", "#4f7a3c"],
+  what: ["#d79a6a", "#a8643a"],
+  help: ["#7fa6c4", "#4a7396"],
+};
+
+function TileScene({ kind }: { kind: Field }) {
+  const [c1, c2] = TILE_COLORS[kind];
+  const id = `tile-${kind}`;
+  return (
+    <>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={c1} />
+          <stop offset="1" stopColor={c2} />
+        </linearGradient>
+        <radialGradient id={`${id}-glow`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor={c1} stopOpacity="0.28" />
+          <stop offset="1" stopColor={c1} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="150" cy="46" rx="92" ry="40" fill={`url(#${id}-glow)`} />
+      {/* ひかえめな、まわりの丸 */}
+      <circle cx="62" cy="30" r="9" fill={c1} opacity="0.22" />
+      <circle cx="94" cy="64" r="4.5" fill={c2} opacity="0.2" />
+      <circle cx="238" cy="26" r="6" fill={c1} opacity="0.26" />
+      <circle cx="212" cy="66" r="10" fill={c2} opacity="0.16" />
+      <circle cx="262" cy="56" r="3.5" fill={c1} opacity="0.3" />
+      {kind === "help" && (
+        <g stroke="#9bb7c6" strokeWidth="2.2" strokeLinecap="round" opacity="0.8">
+          <path d="M98 14 l-3 8 M110 8 l-3 8 M190 8 l-3 8 M202 16 l-3 8" />
+        </g>
+      )}
+      <g className="anim-float">
+        <rect x="116" y="14" width="68" height="68" rx="19" fill="#2d2418" opacity="0.1" transform="translate(0 4)" />
+        <rect x="114" y="10" width="72" height="72" rx="20" fill={`url(#${id})`} />
+        <rect x="114.75" y="10.75" width="70.5" height="70.5" rx="19.3" fill="none" stroke="#fff" strokeOpacity="0.38" strokeWidth="1.5" />
+        <g transform="translate(130 26) scale(1.7)" fill="none" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          {GLYPH[kind]}
+        </g>
+      </g>
+    </>
+  );
+}
+
 function Scene({ step, field }: { step: Step; field?: Field }) {
   if (step === "write")
     return (
@@ -36,133 +115,7 @@ function Scene({ step, field }: { step: Step; field?: Field }) {
         {SPARK(70, 24, "0s")}
       </>
     );
-  if (step === "ask" && field === "when")
-    return (
-      <>
-        {SUN}
-        {GROUND}
-        {/* 壁かけカレンダー */}
-        <rect x="96" y="10" width="64" height="56" rx="6" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
-        <rect x="96" y="10" width="64" height="14" rx="6" fill="#a8362f" />
-        <g fill="#d9c9a8">
-          {[0, 1, 2, 3].map((r) => [0, 1, 2, 3].map((c) => <circle key={`${r}${c}`} cx={108 + c * 14} cy={34 + r * 8} r="2.4" />))}
-        </g>
-        <circle cx="122" cy="42" r="6.5" fill="none" stroke="#a8362f" strokeWidth="2.6" />
-        {/* とけい */}
-        <circle cx="206" cy="38" r="22" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
-        <path d="M206 38 V24 M206 38 L216 44" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" />
-        {SPARK(70, 24, "0s")}
-      </>
-    );
-  if (step === "ask" && field === "where")
-    return (
-      <>
-        {SUN}
-        {GROUND}
-        {/* 家 */}
-        <rect x="62" y="38" width="44" height="28" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
-        <path d="M56 40 L84 18 L112 40 Z" fill="#a8362f" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
-        <rect x="78" y="48" width="12" height="18" fill="#7a5a2f" />
-        {/* 学校 */}
-        <rect x="124" y="30" width="52" height="36" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
-        <path d="M150 30 V14 M150 14 h12 v7 h-12" stroke="#2f6b3a" strokeWidth="3" fill="#2f6b3a" strokeLinejoin="round" />
-        <g fill="#bfe0ee" stroke="#7a5a2f" strokeWidth="2">
-          <rect x="132" y="40" width="10" height="9" />
-          <rect x="158" y="40" width="10" height="9" />
-        </g>
-        {/* 役所・ビル */}
-        <rect x="190" y="24" width="40" height="42" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" />
-        <g fill="#d9c9a8">
-          <rect x="198" y="32" width="8" height="6" />
-          <rect x="214" y="32" width="8" height="6" />
-          <rect x="198" y="46" width="8" height="6" />
-          <rect x="214" y="46" width="8" height="6" />
-        </g>
-        {SPARK(246, 40, "0.7s")}
-      </>
-    );
-  if (step === "ask" && field === "what")
-    return (
-      <>
-        {SUN}
-        {GROUND}
-        {/* お金・住まい・心 */}
-        <circle cx="106" cy="48" r="17" fill="#f2b84b" stroke="#7a5a2f" strokeWidth="3" />
-        <text x="106" y="55" textAnchor="middle" fontSize="20" fontWeight="700" fill="#7a5a2f">
-          ¥
-        </text>
-        <path d="M150 52 V36 L166 24 L182 36 V52 Z" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
-        <path d="M224 56 C196 40 206 22 224 34 C242 22 252 40 224 56 Z" fill="#e8908a" stroke="#a8362f" strokeWidth="3" strokeLinejoin="round" />
-        {SPARK(70, 26, "0s")}
-      </>
-    );
-  if (step === "ask" && field === "help")
-    return (
-      <>
-        {GROUND}
-        {/* 日ざし */}
-        <circle cx="252" cy="26" r="12" fill="#f2b84b" opacity="0.9" />
-        <g stroke="#f2b84b" strokeWidth="2.6" strokeLinecap="round" opacity="0.9">
-          <path d="M252 6 v-3 M252 46 v3 M232 26 h-3 M272 26 h3 M238 12 l-2 -2 M266 12 l2 -2" />
-        </g>
-        {/* じょうろ（水を、やさしくそそぐ） */}
-        <g transform="rotate(16 80 50)" strokeLinejoin="round" strokeLinecap="round">
-          <path d="M62 44 q-16 0 -16 13 q0 9 16 9" fill="none" stroke="#7a5a2f" strokeWidth="3.4" />
-          <path d="M96 49 L120 32" stroke="#7a5a2f" strokeWidth="9" />
-          <path d="M96 49 L120 32" stroke="#9cc4e0" strokeWidth="5" />
-          <ellipse cx="122" cy="30.5" rx="6.2" ry="3.4" transform="rotate(-36 122 30.5)" fill="#cfe6f5" stroke="#7a5a2f" strokeWidth="2.4" />
-          <rect x="60" y="38" width="38" height="29" rx="8" fill="#9cc4e0" stroke="#7a5a2f" strokeWidth="3" />
-          <path d="M68 46 h12" stroke="#fffdf8" strokeWidth="3" opacity="0.7" />
-        </g>
-        {/* 水 */}
-        <g fill="#8fb8d6">
-          <path d="M132 40 q2 3.4 0 5.4 q-2 -2 0 -5.4 z" />
-          <path d="M138 46 q2 3.4 0 5.4 q-2 -2 0 -5.4 z" />
-          <path d="M128 49 q2 3.4 0 5.4 q-2 -2 0 -5.4 z" />
-        </g>
-        {/* 芽（すこし、のびている） */}
-        <g strokeLinejoin="round" strokeLinecap="round">
-          <path d="M165 50 V30" stroke="#4f8a3c" strokeWidth="4" fill="none" />
-          <path d="M165 34 C150 34 140 24 142 12 C156 12 166 22 165 34 Z" fill="#8fcf7a" stroke="#4f8a3c" strokeWidth="2.6" />
-          <path d="M165 28 C178 28 188 20 186 9 C173 9 164 17 165 28 Z" fill="#a9db97" stroke="#4f8a3c" strokeWidth="2.6" />
-          <path d="M146 17 q8 4 14 12" fill="none" stroke="#4f8a3c" strokeWidth="1.8" opacity="0.7" />
-        </g>
-        {/* 植木ばち（にっこり） */}
-        <g strokeLinejoin="round" strokeLinecap="round">
-          <path d="M142 56 h46 l-5 17 q-1 3 -4 3 h-28 q-3 0 -4 -3 z" fill="#e0956a" stroke="#7a5a2f" strokeWidth="3" />
-          <rect x="138" y="48" width="54" height="9" rx="4" fill="#eca67b" stroke="#7a5a2f" strokeWidth="3" />
-          <circle cx="156" cy="65" r="2" fill="#2d2418" />
-          <circle cx="174" cy="65" r="2" fill="#2d2418" />
-          <path d="M160 68 q5 4.4 10 0" fill="none" stroke="#2d2418" strokeWidth="2" />
-          <circle cx="151" cy="68" r="2.8" fill="#f6a8a0" />
-          <circle cx="179" cy="68" r="2.8" fill="#f6a8a0" />
-        </g>
-        {SPARK(210, 48, "0.4s")}
-        {SPARK(100, 14, "1.1s")}
-      </>
-    );
-  if (step === "ask")
-    return (
-      <>
-        {SUN}
-        {GROUND}
-        {/* 湯のみ */}
-        <path d="M120 52 h34 l-3 18 a11 6 0 0 1 -28 0 z" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="2.5" strokeLinejoin="round" />
-        <g stroke="#9c8a6a" strokeWidth="2" strokeLinecap="round" fill="none">
-          <path className="anim-steam" d="M130 44 c-4 -6 4 -9 0 -15" />
-          <path className="anim-steam" style={{ animationDelay: "1s" }} d="M142 44 c-4 -6 4 -9 0 -15" />
-        </g>
-        {/* ふきだし（点3つ） */}
-        <g>
-          <rect x="176" y="14" width="64" height="32" rx="14" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="2.5" />
-          <path d="M184 46 l-8 10 l16 -6 z" fill="#fffdf8" stroke="#7a5a2f" strokeWidth="2.5" strokeLinejoin="round" />
-          <circle cx="194" cy="30" r="3.4" fill="#7a5a2f" />
-          <circle cx="208" cy="30" r="3.4" fill="#7a5a2f" />
-          <circle cx="222" cy="30" r="3.4" fill="#7a5a2f" />
-        </g>
-        {SPARK(84, 26, "0.6s")}
-      </>
-    );
+  if (step === "ask") return <TileScene kind={field ?? "what"} />;
   if (step === "confirm")
     return (
       <>
