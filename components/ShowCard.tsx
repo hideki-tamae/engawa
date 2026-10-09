@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import HandbookCard from "@/components/HandbookCard";
 import type { SharedView } from "@/lib/handoff";
 import ProfileShow from "@/components/ProfileShow";
-import { Notice } from "@/components/ui";
+import { IconBack } from "@/components/icons";
+import { Notice, buttonClass } from "@/components/ui";
 
 /** 本人の携帯を窓口に向けて見せる画面。ログイン不要（本人の端末で開くため）。大きな文字、余計な操作なし。 */
 export default function ShowCard({ token }: { token: string }) {
@@ -40,6 +42,9 @@ export default function ShowCard({ token }: { token: string }) {
         <Notice tone="warn" role="status">
           この手帳は、取り下げられています。
         </Notice>
+        <Link href="/" className={buttonClass("quiet", "mt-4 w-full")}>
+          最初の画面へ
+        </Link>
       </div>
     );
 
@@ -52,6 +57,15 @@ export default function ShowCard({ token }: { token: string }) {
         </p>
       </section>
       <ProfileShow />
+      <nav className="mx-auto max-w-2xl px-4 pb-16 text-center print:hidden" aria-label="もどる">
+        <a href={`/card/${token}`} className={buttonClass("quiet", "w-full")}>
+          <IconBack className="h-5 w-5" />
+          自分の手帳のページにもどる
+        </a>
+        <Link href="/" className={buttonClass("ghost", "mt-2")}>
+          最初の画面へ
+        </Link>
+      </nav>
     </>
   );
 }
