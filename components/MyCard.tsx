@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit-chain";
 import type { SharedView } from "@/lib/handoff";
 import CoverPicker from "@/components/CoverPicker";
 import HandbookCard from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
-import { IconEye, IconPhone, IconShield, IconUndo } from "@/components/icons";
+import { IconBack, IconEye, IconPhone, IconShield, IconUndo } from "@/components/icons";
 import { useCover } from "@/lib/cover-client";
 import { Button, Notice, buttonClass } from "@/components/ui";
 
@@ -60,22 +61,30 @@ export default function MyCard({ token }: { token: string }) {
 
   return (
     <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-8">
-      <h1 className="text-3xl font-bold">あなたの手帳</h1>
+      <Link href="/" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-wood-dark underline-offset-4 hover:underline print:hidden">
+        <IconBack className="h-4 w-4" />
+        最初の画面へ
+      </Link>
+      <h1 className="mt-2 text-3xl font-bold">あなたの手帳</h1>
       <p className="mt-2 text-base leading-8 text-muted">いつ、誰が見たかを、ここで確かめられます。いつでも取り下げられます。</p>
 
       <div className="mt-6">
         {data.view ? (
           <HandbookCard statement={data.view.statement} fields={data.view.fields} stamp={!data.withdrawn} animateIn cover={cover} />
         ) : null}
-        <div className="mt-3 text-center print:hidden">
-          <Button variant="ghost" className="min-h-11 text-base" onClick={() => setCoverOpen((v) => !v)} aria-expanded={coverOpen}>
-            {coverOpen ? "カバーを閉じる" : "カバーを変える"}
-          </Button>
-        </div>
-        {coverOpen && (
-          <div className="mt-2">
-            <CoverPicker />
-          </div>
+        {data.view && (
+          <>
+            <div className="mt-3 text-center print:hidden">
+              <Button variant="ghost" className="min-h-11 text-base" onClick={() => setCoverOpen((v) => !v)} aria-expanded={coverOpen}>
+                {coverOpen ? "カバーを閉じる" : "カバーを変える"}
+              </Button>
+            </div>
+            {coverOpen && (
+              <div className="mt-2">
+                <CoverPicker />
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -133,6 +142,13 @@ export default function MyCard({ token }: { token: string }) {
           <Timeline log={data.log} mode="person" />
         </div>
       </section>
+
+      <nav className="mt-12 border-t border-line pt-6 text-center print:hidden" aria-label="もどる">
+        <Link href="/" className={buttonClass("quiet", "w-full")}>
+          <IconBack className="h-5 w-5" />
+          最初の画面へ
+        </Link>
+      </nav>
     </div>
   );
 }

@@ -467,7 +467,7 @@ export default function PersonFlow() {
     return (
       <>
       {trial && <TrialBanner />}
-      <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-8">
+      <div className="mx-auto w-full max-w-xl px-5 pb-44 pt-8">
         <div className="print:hidden">
           <div className="anim-fade-up text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ok-bg text-ok">
@@ -502,12 +502,6 @@ export default function PersonFlow() {
             )}
           </div>
 
-          {showLink && (
-            <a href={new URL(showLink).pathname} onClick={() => track("share_show")} className={buttonClass("primary", "mt-8 w-full min-h-16 text-xl")}>
-              <IconPhone className="h-6 w-6" />
-              窓口に画面を見せる
-            </a>
-          )}
           {shareError && (
             <div className="mt-4">
               <Notice tone="warn" role="alert">
@@ -527,8 +521,6 @@ export default function PersonFlow() {
               </Notice>
             </div>
           )}
-
-          <FindWindows whats={picks.what} helps={picks.help} />
 
           <h2 className="mt-10 text-lg font-bold text-ink">ほかの渡し方</h2>
           <ul className="mt-3 space-y-3">
@@ -638,6 +630,8 @@ export default function PersonFlow() {
             )}
           </ul>
 
+          <FindWindows whats={picks.what} helps={picks.help} />
+
           <h2 className="mt-10 text-lg font-bold text-ink">あとからでも、だいじょうぶ（任意）</h2>
           <div className="mt-4 rounded-3xl border border-line bg-paper-2 p-5">
             <button
@@ -683,6 +677,17 @@ export default function PersonFlow() {
             </Button>
           </div>
         </div>
+
+        {showLink && (
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 px-5 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 backdrop-blur print:hidden">
+            <div className="mx-auto max-w-xl">
+              <a href={new URL(showLink).pathname} onClick={() => track("share_show")} className={buttonClass("primary", "w-full min-h-16 text-xl")}>
+                <IconPhone className="h-6 w-6" />
+                窓口に画面を見せる
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* 印刷用（画面には出ない） */}
         <div className="hidden print:block">
