@@ -38,3 +38,23 @@ export function coverBackground(c: Cover): { backgroundImage: string; background
     backgroundPosition: "center",
   };
 }
+
+/** カバーの縦横比（横:縦）。写真は、この形に切り出してから保存する。 */
+export const COVER_ASPECT = 3;
+export const COVER_W = 900;
+export const COVER_H = COVER_W / COVER_ASPECT;
+
+/**
+ * 写真のどの部分を、カバーの形に切り出すか。
+ * x, y は 0〜1（左右・上下の位置）、zoom は 1〜3（大きいほど、拡大）。
+ */
+export function cropRect(imgW: number, imgH: number, x: number, y: number, zoom: number, aspect = COVER_ASPECT) {
+  const w0 = imgW / imgH >= aspect ? imgH * aspect : imgW;
+  const h0 = w0 / aspect;
+  const z = Math.min(3, Math.max(1, zoom));
+  const sw = w0 / z;
+  const sh = h0 / z;
+  const cx = Math.min(1, Math.max(0, x));
+  const cy = Math.min(1, Math.max(0, y));
+  return { sx: (imgW - sw) * cx, sy: (imgH - sh) * cy, sw, sh };
+}

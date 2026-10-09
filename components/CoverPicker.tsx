@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { PRESETS, coverBackground } from "@/lib/cover";
-import { photoToCover, saveCover, useCover } from "@/lib/cover-client";
+import { loadPhoto, saveCover, useCover } from "@/lib/cover-client";
+import PhotoCropper from "@/components/PhotoCropper";
 import { IconCheck, IconLock } from "@/components/icons";
 import { Button } from "@/components/ui";
 
@@ -11,6 +12,7 @@ export default function CoverPicker() {
   const cover = useCover();
   const input = useRef<HTMLInputElement>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<ImageBitmap | null>(null);
 
   return (
     <div className="rounded-3xl border border-line bg-paper p-5">
@@ -62,13 +64,22 @@ export default function CoverPicker() {
             if (!f) return;
             setErr(null);
             try {
-              saveCover(await photoToCover(f));
+              setPhoto(await loadPhoto(f));
             } catch {
               setErr("この写真は、使えませんでした。別の写真を、お試しください。");
             }
           }}
         />
       </div>
+      {photo && (
+        <PhotoCropper
+          bmp={photo}
+          onDone={() => {
+            photo.close();
+            setPhoto(null);
+          }}
+        />
+      )}
       {err && (
         <p role="alert" className="mt-3 text-sm text-warn">
           {err}
