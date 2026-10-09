@@ -30,7 +30,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const dangerInput = screenInput("同居の家族が暴れて、怖いです。");
   steps.push({
     title: "1. 本人が書いた言葉の確認",
-    why: "本人の言葉は止めない。止めるのは、個人が特定される情報だけ。危険を示す言葉は、止めずに相談先を見せる。",
+    why: "言葉は止めない。止めるのは、個人情報だけ。",
     checks: [
       { label: "病気や家族の事情を書いても、止めない", ok: sicknessInput.verdict === "allow", detail: `判定：${sicknessInput.verdict}` },
       { label: "電話番号を書いたら、止める", ok: phoneInput.verdict === "refuse", detail: `判定：${phoneInput.verdict}（${phoneInput.reasons.join(",")}）` },
@@ -60,7 +60,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const fq = await proposeNext(card0, fakeQuote);
   steps.push({
     title: "2. AI の質問選択と、出力の検証",
-    why: "AI は「次の質問を選ぶ」ことと「本人の言葉からの引用候補」だけ。出力は必ず検証し、通らなければ固定の質問に戻す。",
+    why: "AIは質問選びと引用候補だけ。出力は必ず検証。",
     checks: [
       {
         label: "実際の質問選択（今の設定）",
@@ -89,7 +89,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const view = viewFor(card);
   steps.push({
     title: "3. 本人が選んだ範囲だけが、窓口に見える",
-    why: "窓口に渡る形には、本人が選んでいない項目は、そもそも含まれない。",
+    why: "本人が選んでいない項目は、窓口に渡らない。",
     checks: [
       { label: "本人のカードにある項目", ok: true, detail: Object.keys(card.fields).join("、") },
       { label: "窓口に見える項目", ok: Object.keys(view.fields).length === 2, detail: Object.keys(view.fields).join("、") },
@@ -112,7 +112,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   h = later.value;
   steps.push({
     title: "4. 本人の確認がないと、先へ進めない",
-    why: "共有も引き継ぎも、本人の「合っている」が前提。窓口が先に進めることはできない。",
+    why: "本人の「合っている」がないと、先へ進めない。",
     checks: [
       { label: "本人が確認する前は、共有できない", ok: !notConfirmed.ok, detail: notConfirmed.ok ? "共有できてしまった" : `拒否：${notConfirmed.reason}` },
       { label: "読み返しで本人が答える前は、引き継げない", ok: !early.ok, detail: early.ok ? "引き継げてしまった" : `拒否：${early.reason}` },
@@ -128,7 +128,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const hasBody = JSON.stringify(log).includes("家賃");
   steps.push({
     title: "5. 経過の記録と、改ざんの検知",
-    why: "誰がいつ何をしたかを、ハッシュでつないで残す。本文は記録に入れない。書き換えは、防げないが、検知できる。",
+    why: "誰がいつ何をしたかを記録。書き換えは検知できる。",
     checks: [
       { label: "記録の並び", ok: true, detail: log.map((e) => e.type).join(" → ") },
       { label: "そのままなら、異常なし", ok: intact.ok, detail: intact.ok ? "検証：異常なし" : "異常あり" },
@@ -147,7 +147,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const diff = verifyPaper(h, "000000000000");
   steps.push({
     title: "6. 紙の照合",
-    why: "紙の内容が、記録と同じかを確かめる。1字でも違えば、コードが変わる。",
+    why: "紙の内容が、記録と同じか確かめる。",
     checks: [
       { label: "作成日時（秒まで）", ok: true, detail: createdAt },
       { label: "正しいコードは、一致する", ok: same.match, detail: `照合コード ${code}` },
@@ -161,7 +161,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const afterPaper = verifyPaper(w, code);
   steps.push({
     title: "7. 本人は、いつでも取り下げられる",
-    why: "取り下げたら、窓口は見られず、紙の照合も無効になる。",
+    why: "取り下げたら、窓口は見られない。紙も無効。",
     checks: [
       { label: "取り下げ後、窓口は開けない", ok: !afterOpen.ok, detail: afterOpen.ok ? "開けてしまった" : `拒否：${afterOpen.reason}` },
       { label: "取り下げ後、紙の照合は無効", ok: !afterPaper.match, detail: afterPaper.match ? "有効のまま" : "無効" },

@@ -1,6 +1,7 @@
 "use client";
 
 import HowHero from "@/components/HowHero";
+import HowIcon from "@/components/HowIcon";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Step } from "@/lib/demo";
@@ -111,9 +112,9 @@ export default function HowItWorks() {
           </div>
 
           <section className="mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft" aria-labelledby="evals-h">
-            <h2 id="evals-h" className="text-xl font-bold">AI の制御のテスト（Evals）</h2>
+            <h2 id="evals-h" className="flex items-center gap-3 text-xl font-bold"><HowIcon kind="shield" />AI の制御のテスト（Evals）</h2>
             <p className="mt-1 text-sm leading-7 text-muted">
-              診断・点数づけ・責める文面・個人情報・攻撃（「指示を無視して」など）に、制御が効いているかを、自動で確かめています。
+              診断・点数づけ・攻撃を止められるか、自動で確認。
             </p>
             {evals ? (
               <>
@@ -151,7 +152,7 @@ export default function HowItWorks() {
             <div className="mt-5 rounded-2xl border border-line p-4">
               <p className="text-sm font-semibold">実際の AI（Gemini）で、12件ためす</p>
               <p className="mt-1 text-xs leading-6 text-muted">
-                AI は、毎回、違う答えを返します。そこで、「検証を通った出力だけが画面に出るか」と、「AI の案が採用された割合」を、別々に出します。
+                毎回ちがう答えなので、通過率と採用率を別に出します。
               </p>
               <Button variant="quiet" className="mt-3 w-full" onClick={runLive} disabled={liveBusy}>
                 {liveBusy ? "ためしています…（30秒ほど）" : live ? "結果を見なおす" : "ためす"}
@@ -183,7 +184,7 @@ export default function HowItWorks() {
                 className="anim-fade-up rounded-3xl border border-line bg-paper p-5 shadow-soft"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
-                <h2 className="text-xl font-bold">{s.title}</h2>
+                <h2 className="flex items-center gap-3 text-xl font-bold"><HowIcon kind={String(i + 1)} />{s.title.replace(/^\d+\.\s*/, "")}</h2>
                 <p className="mt-1 text-sm leading-7 text-muted">{s.why}</p>
                 <ul className="mt-4 space-y-3">
                   {s.checks.map((c) => (
@@ -207,9 +208,9 @@ export default function HowItWorks() {
           </ol>
 
           <section className="mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft">
-            <h2 className="text-xl font-bold">試用の結果</h2>
+            <h2 className="flex items-center gap-3 text-xl font-bold"><HowIcon kind="chart" />試用の結果</h2>
             <p className="mt-1 text-sm leading-7 text-muted">
-              試用のリンクから入った人の、操作にかかった時間と、最後まで進めたかだけの集計です。言葉や内容は、記録していません。
+              操作時間と、最後まで進んだかだけの集計。内容は記録しません。
             </p>
             {trial && trial.enough ? (
               <dl className="mt-4 grid grid-cols-3 gap-3 text-center">
