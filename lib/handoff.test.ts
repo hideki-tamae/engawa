@@ -88,3 +88,21 @@ describe("照合コード（紙と原本の一致）", () => {
     expect(r.match).toBe(false);
   });
 });
+
+
+describe("取り下げると、本文も消える", () => {
+  it("取り下げたあとの保存内容に、本人の言葉も項目も残らない（記録は残る）", () => {
+    let c = createCard("w1", "秘密の言葉 SECRET-TEXT", "text");
+    c = setShareScope(setField(c, "what", "お金のこと SECRET-FIELD", "chosen_from_suggestion"), ["what"]);
+    c = confirmCard(c);
+    const s = share(c, "tok");
+    expect(s.ok).toBe(true);
+    if (!s.ok) return;
+    const w = withdraw(s.value);
+    const dump = JSON.stringify(w);
+    expect(dump).not.toContain("SECRET-TEXT");
+    expect(dump).not.toContain("SECRET-FIELD");
+    expect(w.withdrawn).toBe(true);
+    expect(w.log[w.log.length - 1].type).toBe("withdrawn");
+  });
+});

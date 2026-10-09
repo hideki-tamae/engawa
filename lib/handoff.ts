@@ -97,7 +97,9 @@ export function handOff(h: Handoff, toWindow: string): Result<Handoff> {
 /** 本人がいつでも取り下げられる。 */
 export function withdraw(h: Handoff): Handoff {
   const log = appendEntry(h.log, { type: "withdrawn", cardId: h.card.id, actor: "person" });
-  return { ...h, log, withdrawn: true };
+  // 取り下げたら、本人の言葉も項目も、サーバーから消す（記録の骨組みだけを残す。記録に本文は入っていない）
+  const card = { ...h.card, statement: "", fields: {}, shareScope: [], personConfirmed: false };
+  return { ...h, card, log, withdrawn: true };
 }
 
 /**

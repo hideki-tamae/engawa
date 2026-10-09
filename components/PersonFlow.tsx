@@ -458,6 +458,10 @@ export default function PersonFlow() {
             <Link href="/for-windows" className="inline-flex min-h-11 items-center underline underline-offset-4">
               窓口の方へ
             </Link>
+            <span aria-hidden className="mx-3">／</span>
+            <Link href="/privacy" className="inline-flex min-h-11 items-center underline underline-offset-4">
+              個人情報の扱い
+            </Link>
           </p>
         </div>
       </div>
