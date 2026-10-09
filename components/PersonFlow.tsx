@@ -19,6 +19,7 @@ import { followUpQuestions } from "@/lib/suggestions";
 import type { AgentProposal } from "@/lib/agent";
 import CoverPicker from "@/components/CoverPicker";
 import ProfileEditor from "@/components/ProfileEditor";
+import Celebrate from "@/components/Celebrate";
 import EmergencyList from "@/components/EmergencyList";
 import SafetyPanel from "@/components/SafetyPanel";
 import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
@@ -470,12 +471,12 @@ export default function PersonFlow() {
       <div className="mx-auto w-full max-w-xl px-5 pb-44 pt-8">
         <div className="print:hidden">
           <div className="anim-fade-up text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ok-bg text-ok">
-              <IconCheck className="h-8 w-8" />
-            </span>
+            <Celebrate />
             <h1 className="mt-4 text-3xl font-bold">手帳ができました</h1>
             <p className="mt-2 text-base leading-8 text-muted">
-              これで完成です。あなたの言葉のまま、窓口に見せられます。
+              ここまで書いてくださって、ありがとうございます。これで完成です。
+              <br />
+              あなたの言葉のまま、窓口に見せられます。
               <br />
               受け取るかどうかは、窓口によります。
             </p>

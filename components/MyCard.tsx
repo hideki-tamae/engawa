@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit-chain";
 import type { SharedView } from "@/lib/handoff";
+import Celebrate from "@/components/Celebrate";
 import CoverPicker from "@/components/CoverPicker";
 import HandbookCard from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
@@ -61,11 +62,8 @@ export default function MyCard({ token }: { token: string }) {
 
   return (
     <div className="mx-auto w-full max-w-xl px-5 pb-20 pt-8">
-      <Link href="/" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-wood-dark underline-offset-4 hover:underline print:hidden">
-        <IconBack className="h-4 w-4" />
-        最初の画面へ
-      </Link>
-      <h1 className="mt-2 text-3xl font-bold">あなたの手帳</h1>
+      {!data.withdrawn && <Celebrate className="mb-2 print:hidden" />}
+      <h1 className="text-3xl font-bold">あなたの手帳</h1>
       <p className="mt-2 text-base leading-8 text-muted">いつ、誰が見たかを、ここで確かめられます。いつでも取り下げられます。</p>
 
       <div className="mt-6">
