@@ -134,6 +134,16 @@ check("0. 試験用カードを作れる（本人用と窓口用の、2つの合
   check("11. 取り下げたあとは、本人用の画面にも内容が出ない", !t.includes("WHAT-SHARED") && !t.includes("WHEN-SECRET"), `status ${r.status} ${t.slice(0, 120)}`);
 }
 
+// 12. サンプルの手帳（作り話）を、窓口の画面で、読める
+{
+  const r = await post("/api/sample", {});
+  const j = await r.json().catch(() => ({}));
+  const rd = j.windowToken ? await fetch(`${BASE}/api/cards/${j.windowToken}`, { headers: auth }) : null;
+  const body = rd ? await rd.json().catch(() => ({})) : {};
+  check("12. サンプルの手帳を作れて、窓口の画面で読める（作り話・本人の情報なし）", r.ok && !!rd?.ok && String(body.view?.statement ?? "").includes("作り話"), `sample ${r.status} / read ${rd?.status}`);
+  if (j.token) await post(`/api/cards/${j.token}`, { action: "withdraw" });
+}
+
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n目印: ${MARK}（ログに本人の言葉が出ていないか、別に確認する）`);
 console.log(failed === 0 ? `ALL PASS (${results.length})` : `${failed} FAILED / ${results.length}`);

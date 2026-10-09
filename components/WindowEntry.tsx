@@ -38,6 +38,21 @@ export default function WindowEntry() {
   const router = useRouter();
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState(false);
+  const [sampleBusy, setSampleBusy] = useState(false);
+  const [sampleError, setSampleError] = useState(false);
+
+  async function openSample() {
+    setSampleBusy(true);
+    setSampleError(false);
+    const r = await fetch("/api/sample", { method: "POST" }).catch(() => null);
+    if (!r?.ok) {
+      setSampleBusy(false);
+      setSampleError(true);
+      return;
+    }
+    const j = (await r.json()) as { windowToken: string };
+    router.push(`/window/${j.windowToken}`);
+  }
 
   function open(e: React.FormEvent) {
     e.preventDefault();
@@ -106,6 +121,25 @@ export default function WindowEntry() {
           画面や紙を、見るだけ
         </h3>
         <p className="mt-2 text-base leading-8">本人の画面や紙を、そのまま読めます。<strong>ログインは、いりません。</strong>読んだら、本人に「合っていますか」と確かめてください。</p>
+      </section>
+
+      <section className="mt-4 rounded-3xl border-2 border-wood bg-paper p-5 shadow-soft" aria-labelledby="o4">
+        <h3 id="o4" className="flex items-center gap-3 text-lg font-bold">
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-wood text-base text-paper">★</span>
+          まず、試してみる（サンプル）
+        </h3>
+        <p className="mt-2 text-base leading-8">
+          作り話の手帳を、新しく作ります。窓口の画面で、<strong>読む → 確かめる → 引き継ぐ</strong>を、そのまま試せます。個人の情報は、入っていません。
+        </p>
+        <Button className="mt-4 w-full" onClick={openSample} disabled={sampleBusy}>
+          {sampleBusy ? "用意しています…" : "サンプルの手帳を開く"}
+        </Button>
+        {sampleError && (
+          <div className="mt-3">
+            <Notice tone="warn" role="alert">用意できませんでした。しばらくしてから、もう一度お試しください。</Notice>
+          </div>
+        )}
+        <p className="mt-3 text-xs leading-6 text-muted">ログインは、そのあとの画面で、必要です。窓口名とパスワードは、提出の「動作確認の方法」に書いてあります。</p>
       </section>
 
       <p className="mt-6 text-sm leading-7 text-muted">

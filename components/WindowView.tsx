@@ -254,6 +254,13 @@ export default function WindowView({ token }: { token: string }) {
       <p className="mt-2 text-base leading-7 text-muted">
         本人が選んだ範囲だけを表示しています。診断や評価の欄はありません。
       </p>
+      {data.view.cardId.startsWith("sample-") && (
+        <div className="mt-4">
+          <Notice tone="info" role="status">
+            これは、作り話の<strong>サンプル</strong>です。読む、確かめる、引き継ぐ、を、そのまま試せます。
+          </Notice>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         <div>
