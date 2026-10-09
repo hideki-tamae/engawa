@@ -99,27 +99,35 @@ function Scene({ step, field }: { step: Step; field?: Field }) {
   if (step === "ask" && field === "help")
     return (
       <>
-        {SUN}
-        {/* 軒（のき） */}
-        <rect x="88" y="0" width="124" height="6" rx="3" fill="#7a5a2f" />
-        {/* あたたかい灯り */}
-        <circle cx="150" cy="42" r="36" fill="#f2b84b" opacity="0.22" />
-        <circle cx="150" cy="42" r="24" fill="#f2b84b" opacity="0.22" />
-        {/* ちょうちん */}
-        <path d="M150 6 V15" stroke="#7a5a2f" strokeWidth="2.6" strokeLinecap="round" />
-        <rect x="139" y="14" width="22" height="6" rx="2.5" fill="#7a5a2f" />
-        <path d="M133 21 Q124 40 133 59 H167 Q176 40 167 21 Z" fill="#c0463c" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
-        <ellipse cx="150" cy="40" rx="11" ry="15" fill="#f6c96a" opacity="0.8" />
-        <g fill="none" stroke="#7a5a2f" strokeWidth="2" strokeLinecap="round" opacity="0.75">
-          <path d="M130 30 Q150 34 170 30" />
-          <path d="M127.5 40 Q150 44 172.5 40" />
-          <path d="M130 50 Q150 54 170 50" />
+        <defs>
+          <clipPath id="fuji-clip">
+            <path d="M58 78 C100 71 127 50 137 22 Q150 14 163 22 C173 50 200 71 242 78 Z" />
+          </clipPath>
+        </defs>
+        {/* 朝日 */}
+        <circle cx="206" cy="38" r="34" fill="#f2b84b" opacity="0.2" />
+        <circle cx="206" cy="38" r="23" fill="#e2573c" />
+        <g stroke="#f2b84b" strokeWidth="2.6" strokeLinecap="round">
+          <path d="M206 8 v-4 M232 18 l3 -3 M180 18 l-3 -3 M240 40 h4 M172 40 h-4" />
         </g>
-        <rect x="139" y="58" width="22" height="6" rx="2.5" fill="#7a5a2f" />
-        <path d="M150 64 V74" stroke="#a8362f" strokeWidth="2.6" strokeLinecap="round" />
-        <path d="M146 74 H154 L152.5 82 H147.5 Z" fill="#a8362f" />
-        {SPARK(92, 30, "0s")}
-        {SPARK(206, 50, "0.8s")}
+        {/* 地面 */}
+        <rect x="0" y="74" width="300" height="16" fill="#cfe0c4" />
+        <rect x="0" y="74" width="300" height="3.5" fill="#b3cc9e" />
+        {/* 富士山 */}
+        <path d="M58 78 C100 71 127 50 137 22 Q150 14 163 22 C173 50 200 71 242 78 Z" fill="#6f8fb5" />
+        <g clipPath="url(#fuji-clip)">
+          <path d="M100 44 Q118 40 127 49 Q135 42 142 51 Q150 41 158 51 Q165 42 173 49 Q182 40 200 44 V0 H100 Z" fill="#fffdf8" />
+          <path d="M40 64 C110 58 190 58 260 64 V84 H40 Z" fill="#587ba5" opacity="0.4" />
+        </g>
+        <path d="M58 78 C100 71 127 50 137 22 Q150 14 163 22 C173 50 200 71 242 78" fill="none" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {/* 雲 */}
+        <g fill="#fffdf8" opacity="0.95">
+          <ellipse cx="98" cy="46" rx="22" ry="6.5" />
+          <ellipse cx="112" cy="41" rx="13" ry="6" />
+          <ellipse cx="236" cy="62" rx="20" ry="5.5" />
+          <ellipse cx="248" cy="57" rx="11" ry="5" />
+        </g>
+        {SPARK(60, 22, "0s")}
       </>
     );
   if (step === "ask")
