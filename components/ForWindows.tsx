@@ -211,6 +211,12 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
           </form>
         )}
       </section>
+      <nav className="mt-12 border-t border-line pt-6 text-center" aria-label="もどる">
+        <Link href="/" className={buttonClass("quiet", "w-full")}>
+          <IconBack className="h-5 w-5" />
+          手帳にもどる
+        </Link>
+      </nav>
     </div>
   );
 }

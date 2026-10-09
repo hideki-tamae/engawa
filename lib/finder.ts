@@ -38,7 +38,7 @@ export type ResolveSource = (uri: string) => Promise<string | null>;
 export type FetchPage = (url: string) => Promise<{ ok: boolean; status: number; text: string } | null>;
 
 const KINDS = ["市区町村", "都道府県", "国"] as const;
-const HELPS = ["話を聞いてほしい", "手続きを一緒にしてほしい", "どこに相談すればよいか知りたい", "代わりに伝えてほしい", "まだ分からない"];
+const HELPS = ["話を聞いてほしい", "手続きを一緒にしてほしい", "相談先を知りたい", "代わりに伝えてほしい", "まだ分からない"];
 const WHATS = ["お金のこと", "住まいのこと", "仕事・学校のこと", "家族のこと", "体や心の調子", "手続きが分からない", ...WHAT_MORE];
 
 export const FINDER_WHATS = WHATS;

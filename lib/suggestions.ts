@@ -32,7 +32,7 @@ export const COMMON_OPTIONS: Record<FieldKey, string[]> = {
   help: [
     "話を聞いてほしい",
     "手続きを一緒にしてほしい",
-    "どこに相談すればよいか知りたい",
+    "相談先を知りたい",
     "代わりに伝えてほしい",
     "まだ分からない",
   ],

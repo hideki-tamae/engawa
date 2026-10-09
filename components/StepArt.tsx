@@ -100,13 +100,29 @@ function Scene({ step, field }: { step: Step; field?: Field }) {
     return (
       <>
         {GROUND}
-        {/* 雨と、日がさ */}
+        {/* 雨 */}
         <g stroke="#9bb7c6" strokeWidth="2.4" strokeLinecap="round">
-          <path d="M86 8 l-4 10 M112 4 l-4 10 M200 8 l-4 10 M232 6 l-4 10" />
+          <path d="M70 10 l-4 10 M96 4 l-4 10 M208 8 l-4 10 M238 6 l-4 10 M60 36 l-4 10 M246 34 l-4 10" />
         </g>
-        <path d="M110 40 Q150 -2 190 40 Z" fill="#a8362f" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
-        <path d="M150 40 V62 q0 6 -7 6" fill="none" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" />
-        <path d="M150 54 C140 47 144 41 150 46 C156 41 160 47 150 54 Z" fill="#fffdf8" stroke="#a8362f" strokeWidth="2" />
+        {/* 日がさ */}
+        <path d="M104 40 Q150 -6 196 40 Z" fill="#a8362f" stroke="#7a5a2f" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M150 40 V30" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" />
+        {/* 手をつなぐ 2人（顔は描かない） */}
+        <g strokeLinejoin="round" strokeLinecap="round">
+          {/* 男の子 */}
+          <circle cx="132" cy="48" r="8" fill="#f4d9b8" stroke="#7a5a2f" strokeWidth="2.4" />
+          <path d="M124 46 q8 -9 16 0" fill="#5b4222" stroke="#5b4222" strokeWidth="2" />
+          <rect x="125" y="56" width="14" height="13" rx="4" fill="#6a8f5a" stroke="#7a5a2f" strokeWidth="2.4" />
+          {/* 女の子 */}
+          <circle cx="168" cy="48" r="8" fill="#f4d9b8" stroke="#7a5a2f" strokeWidth="2.4" />
+          <path d="M160 46 q8 -9 16 0" fill="#5b4222" stroke="#5b4222" strokeWidth="2" />
+          <path d="M161 44 q-4 6 -1 11" fill="none" stroke="#5b4222" strokeWidth="3" />
+          <path d="M175 44 q4 6 1 11" fill="none" stroke="#5b4222" strokeWidth="3" />
+          <path d="M162 56 h12 l3 13 h-18 z" fill="#e8a24a" stroke="#7a5a2f" strokeWidth="2.4" />
+          {/* つないだ手 */}
+          <path d="M139 62 H161" stroke="#7a5a2f" strokeWidth="3" />
+          <circle cx="150" cy="62" r="2.6" fill="#f4d9b8" stroke="#7a5a2f" strokeWidth="2" />
+        </g>
         {SPARK(220, 30, "0.5s")}
       </>
     );

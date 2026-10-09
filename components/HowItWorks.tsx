@@ -1,5 +1,6 @@
 "use client";
 
+import { buttonClass } from "@/components/ui";
 import HowHero from "@/components/HowHero";
 import HowIcon from "@/components/HowIcon";
 import Link from "next/link";
@@ -210,7 +211,7 @@ export default function HowItWorks() {
           <section className="mt-10 rounded-3xl border border-line bg-paper p-5 shadow-soft">
             <h2 className="flex items-center gap-3 text-xl font-bold"><HowIcon kind="chart" />試用の結果</h2>
             <p className="mt-1 text-sm leading-7 text-muted">
-              操作時間と、最後まで進んだかだけの集計。内容は記録しません。
+              試用リンクから入った人だけを数えます。内容は記録しません。
             </p>
             {trial && trial.enough ? (
               <dl className="mt-4 grid grid-cols-3 gap-3 text-center">
@@ -228,7 +229,12 @@ export default function HowItWorks() {
                 </div>
               </dl>
             ) : (
-              <p className="mt-4 rounded-2xl bg-paper-2 p-4 text-base leading-7">まだ数値が出ていません。（3人以上が試すと、ここに出ます。）</p>
+              <div className="mt-4 rounded-2xl bg-paper-2 p-4">
+                <p className="text-base leading-7">まだ数値は出ていません（3人以上で表示）。</p>
+                <p className="mt-1 text-sm leading-7 text-muted">
+                  いま、試用リンクから <strong>{trial?.started ?? 0}人</strong> を、数えています。
+                </p>
+              </div>
             )}
           </section>
 
@@ -250,6 +256,12 @@ export default function HowItWorks() {
           </p>
         </>
       )}
+      <nav className="mt-12 border-t border-line pt-6 text-center" aria-label="もどる">
+        <Link href="/" className={buttonClass("quiet", "w-full")}>
+          <IconBack className="h-5 w-5" />
+          手帳にもどる
+        </Link>
+      </nav>
     </div>
   );
 }
