@@ -175,7 +175,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
         </summary>
       <section className="mt-5 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="offer-h">
         <h2 id="offer-h" className="text-xl font-bold">{INVITE_OFFER.title}</h2>
-        <p className="mt-2 text-base leading-8">招待コードがあれば、次の内容で参加できます。</p>
+        <p className="mt-2 min-[340px]:whitespace-nowrap text-[clamp(13px,4vw,16px)] leading-8">招待コードがあれば、参加できます。</p>
         <ul className="mt-3 space-y-2">
           {INVITE_OFFER.items.map((t) => (
             <li key={t} className="flex items-start gap-3 text-base leading-8">
@@ -184,7 +184,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-sm leading-7 text-muted">{INVITE_OFFER.note}</p>
+        <p className="mt-3 min-[340px]:whitespace-nowrap text-[clamp(11px,3.4vw,14px)] leading-7 text-muted">{INVITE_OFFER.note}</p>
       </section>
 
       <section className="mt-6" aria-labelledby="pilot-h">
