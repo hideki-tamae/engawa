@@ -109,6 +109,14 @@ export default function PersonFlow() {
   const [voiceUsed, setVoiceUsed] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  // LINE・Facebook・Instagram・X・WeChat などの「アプリ内ブラウザ」では、マイクが許可されないことが多い
+  const [inApp, setInApp] = useState(false);
+  const [urlCopied, setUrlCopied] = useState(false);
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInApp(/Line\/|FBAN|FBAV|FB_IAB|Instagram|Twitter|MicroMessenger|KAKAOTALK|NAVER\(inapp|; wv\)/i.test(ua));
+  }, []);
   const [notice, setNotice] = useState<ScreenResult | null>(null);
   const [card, setCard] = useState<ProblemCard | null>(null);
   const rec = useRef<SpeechRecognitionLike | null>(null);
@@ -315,8 +323,29 @@ export default function PersonFlow() {
       stopTimer.current = setTimeout(() => {
         if (mr.state !== "inactive") mr.stop();
       }, STT_MAX_SECONDS * 1000);
+    } catch (err) {
+      const name = err instanceof DOMException ? err.name : "";
+      if (inApp) {
+        setVoiceError("このアプリの中では、マイクが使えないようです。下の「このページの URL をコピー」を押して、Safari や Chrome で開き直してください。文字で書くこともできます。");
+      } else if (name === "NotAllowedError" || name === "SecurityError") {
+        setVoiceError("マイクが許可されていません。ブラウザのアドレス欄の鍵（またはスマホの「設定」→ ブラウザ → マイク）で、許可に変えてください。文字で書くこともできます。");
+      } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+        setVoiceError("マイクが見つかりませんでした。文字で書いてください。");
+      } else if (name === "NotReadableError") {
+        setVoiceError("マイクを、ほかのアプリが使っているようです。そのアプリを閉じてから、もう一度お試しください。文字で書くこともできます。");
+      } else {
+        setVoiceError("マイクが使えませんでした。文字で書くこともできます。");
+      }
+    }
+  }
+
+  async function copyPageUrl() {
+    try {
+      await navigator.clipboard.writeText(window.location.href.split("#")[0]);
+      setUrlCopied(true);
+      window.setTimeout(() => setUrlCopied(false), 3000);
     } catch {
-      setVoiceError("マイクが使えませんでした。ブラウザの設定で、マイクを許可してください。文字で書くこともできます。");
+      setVoiceError("コピーできませんでした。画面の右上のメニューから、「ブラウザで開く」を選んでください。");
     }
   }
 
@@ -854,11 +883,25 @@ export default function PersonFlow() {
               )}
             </div>
           </div>
+          {inApp && !voiceError && (
+            <p className="mt-3 text-sm leading-6 text-muted">
+              ※ アプリの中で開いていると、「話して入力」が使えないことがあります。その場合は、Safari や Chrome で開くか、文字で書いてください。
+            </p>
+          )}
           {voiceError && (
             <div className="mt-3">
               <Notice tone="info" role="alert">
                 {voiceError}
               </Notice>
+              {inApp && (
+                <button
+                  type="button"
+                  onClick={copyPageUrl}
+                  className="mt-2 inline-flex min-h-11 items-center rounded-full border-2 border-wood/45 bg-paper px-4 text-sm font-semibold text-wood-dark"
+                >
+                  {urlCopied ? "コピーしました" : "このページの URL をコピー"}
+                </button>
+              )}
             </div>
           )}
 
