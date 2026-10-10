@@ -395,12 +395,12 @@ export default function PersonFlow() {
             Engawa
             <span className="ml-2 text-2xl font-semibold text-wood">縁側</span>
           </h1>
-          <p className="mt-3 text-[1.35rem] font-semibold leading-9 text-ink">
+          <p className="mt-3 text-[1.2rem] font-semibold leading-9 text-ink [word-break:auto-phrase] min-[360px]:text-[1.35rem]">
             困りごとを、あなたの言葉のまま
             <br />
             持ち歩ける手帳。
           </p>
-          <p className="mt-2 text-base leading-8 text-muted">窓口が変わっても、同じ話を一から説明し直さなくて済むように。</p>
+          <p className="mt-2 text-base leading-8 text-muted text-balance [word-break:auto-phrase]">窓口が変わっても、同じ話を一から説明し直さなくて済むように。</p>
         </div>
 
         <div className="anim-fade-up mt-8 [animation-delay:120ms]">
