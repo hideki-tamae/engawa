@@ -499,6 +499,10 @@ export default function PersonFlow() {
               個人情報の扱い
             </Link>
             <span aria-hidden className="mx-3">／</span>
+            <Link href="/about" className="inline-flex min-h-11 items-center underline underline-offset-4">
+              運営者・著作権
+            </Link>
+            <span aria-hidden className="mx-3">／</span>
             <LangSwitch />
           </p>
         </div>
