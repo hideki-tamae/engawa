@@ -1,4 +1,5 @@
 import { addDoc } from "@/lib/collect";
+import { logEvent } from "@/lib/log";
 import { screenInput } from "@/lib/guardrails";
 import { LIMITS, allow, clientKey } from "@/lib/ratelimit";
 import { validateRating } from "@/lib/trial";
@@ -20,5 +21,7 @@ export async function POST(request: Request) {
     if (t && screenInput(t).verdict === "refuse") return Response.json({ error: "pii" }, { status: 422 });
   }
   await addDoc("ratings", { ...v.value, at: new Date().toISOString() });
+  // 通知用の記録（内容は入れない）。Cloud Monitoring が、これを見つけて、田前さんにメールを送る
+  logEvent("rating_submitted", { role: v.value.role ?? "none" });
   return Response.json({ ok: true });
 }
