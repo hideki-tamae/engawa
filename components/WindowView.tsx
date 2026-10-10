@@ -177,6 +177,11 @@ export default function WindowView({ token }: { token: string }) {
               </p>
             </Notice>
           </div>
+          <nav aria-label="ほかのページ" className="mt-4 flex flex-wrap gap-x-5 text-sm">
+            <Link href="/for-windows" className="inline-flex min-h-11 items-center font-semibold text-wood-dark underline underline-offset-4">窓口の方へ</Link>
+            <Link href="/window" className="inline-flex min-h-11 items-center font-semibold text-wood-dark underline underline-offset-4">手帳を受け取る</Link>
+            <Link href="/" className="inline-flex min-h-11 items-center font-semibold text-wood-dark underline underline-offset-4">最初の画面へ</Link>
+          </nav>
           <label className="mt-6 block text-base font-semibold" htmlFor="u">
             窓口名
           </label>

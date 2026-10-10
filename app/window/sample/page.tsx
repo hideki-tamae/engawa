@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { sampleLang } from "@/lib/sample";
 
 /** QR から来た人を、サンプルの手帳（作り話）に案内する。開いただけでは作らず、JS が動いたときだけ作る。 */
 export default function SampleEntry() {
@@ -10,7 +11,7 @@ export default function SampleEntry() {
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     let alive = true;
-    fetch("/api/sample", { method: "POST" })
+    fetch("/api/sample", { method: "POST", body: JSON.stringify({ lang: sampleLang() }) })
       .then(async (r) => {
         if (!r.ok) throw new Error("sample");
         const j = (await r.json()) as { windowToken: string };

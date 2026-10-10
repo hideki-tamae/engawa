@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Qr from "@/components/Qr";
 import { IconBack } from "@/components/icons";
+import { sampleLang } from "@/lib/sample";
 import { Button, Notice } from "@/components/ui";
 import { extractToken } from "@/lib/token-link";
 
@@ -50,7 +51,7 @@ export default function WindowEntry() {
   async function openSample() {
     setSampleBusy(true);
     setSampleError(false);
-    const r = await fetch("/api/sample", { method: "POST" }).catch(() => null);
+    const r = await fetch("/api/sample", { method: "POST", body: JSON.stringify({ lang: sampleLang() }) }).catch(() => null);
     if (!r?.ok) {
       setSampleBusy(false);
       setSampleError(true);
@@ -79,6 +80,24 @@ export default function WindowEntry() {
         <Flow />
       </div>
 
+      <section className="mt-6 rounded-3xl border-2 border-wood bg-paper p-5 shadow-soft" aria-labelledby="o4">
+        <h3 id="o4" className="flex items-center gap-3 text-lg font-bold">
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-wood text-base text-paper">★</span>
+          まず、試してみる（サンプル）
+        </h3>
+        <p className="mt-2 text-base leading-8">
+          作り話の手帳を、新しく作ります。窓口の画面で、<strong>読む → 確かめる → 引き継ぐ</strong>を、そのまま試せます。個人の情報は、入っていません。
+        </p>
+        <Button className="mt-4 w-full" onClick={openSample} disabled={sampleBusy}>
+          {sampleBusy ? "用意しています…" : "サンプルの手帳を開く"}
+        </Button>
+        {sampleError && (
+          <div className="mt-3">
+            <Notice tone="warn" role="alert">用意できませんでした。しばらくしてから、もう一度お試しください。</Notice>
+          </div>
+        )}
+        <p className="mt-3 text-xs leading-6 text-muted">ログインは、そのあとの画面で、必要です。窓口名とパスワードは、提出の「動作確認の方法」に書いてあります。</p>
+      </section>
       <h2 className="mt-8 text-xl font-bold">受け取り方は、3つ</h2>
       <p className="mt-1 text-sm leading-7 text-muted">メールの登録や、アカウントは、いりません。本人が、手帳を作ったあとに、受け取れます。</p>
 
@@ -137,24 +156,6 @@ export default function WindowEntry() {
         <p className="mt-2 text-base leading-8">本人の画面や紙を、そのまま読めます。<strong>ログインは、いりません。</strong>読んだら、本人に「合っていますか」と確かめてください。</p>
       </section>
 
-      <section className="mt-4 rounded-3xl border-2 border-wood bg-paper p-5 shadow-soft" aria-labelledby="o4">
-        <h3 id="o4" className="flex items-center gap-3 text-lg font-bold">
-          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-wood text-base text-paper">★</span>
-          まず、試してみる（サンプル）
-        </h3>
-        <p className="mt-2 text-base leading-8">
-          作り話の手帳を、新しく作ります。窓口の画面で、<strong>読む → 確かめる → 引き継ぐ</strong>を、そのまま試せます。個人の情報は、入っていません。
-        </p>
-        <Button className="mt-4 w-full" onClick={openSample} disabled={sampleBusy}>
-          {sampleBusy ? "用意しています…" : "サンプルの手帳を開く"}
-        </Button>
-        {sampleError && (
-          <div className="mt-3">
-            <Notice tone="warn" role="alert">用意できませんでした。しばらくしてから、もう一度お試しください。</Notice>
-          </div>
-        )}
-        <p className="mt-3 text-xs leading-6 text-muted">ログインは、そのあとの画面で、必要です。窓口名とパスワードは、提出の「動作確認の方法」に書いてあります。</p>
-      </section>
 
       <p className="mt-6 text-sm leading-7 text-muted">
         ログインできるのは、試用に参加している窓口だけです。デモ版の窓口名は「窓口A」「窓口B」で、パスワードは、運営がお渡しします。

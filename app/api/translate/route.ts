@@ -3,7 +3,7 @@ import { LIMITS, allow, clientKey } from "@/lib/ratelimit";
 import { translateTexts, validateShort, validateTexts } from "@/lib/translate";
 
 export async function POST(request: Request) {
-  if (!allow(`translate:${clientKey(request)}`, 40, 60_000)) {
+  if (!allow(`translate:${clientKey(request)}`, 120, 60_000)) {
     return Response.json({ error: "rate_limited" }, { status: 429 });
   }
   const text = await request.text();

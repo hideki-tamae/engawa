@@ -451,6 +451,12 @@ export default function PersonFlow() {
               </li>
             ))}
           </ul>
+          <div className="mt-6 rounded-2xl border-2 border-wood bg-paper p-4 text-center">
+            <p className="text-base font-semibold">窓口・支援者の方は、こちら</p>
+            <Link href="/for-windows" className={buttonClass("quiet", "mt-3 w-full")}>
+              窓口の方へ（ログイン）
+            </Link>
+          </div>
           <p className="mt-6 text-center text-sm text-muted">
             <Link href="/how" className="inline-flex min-h-11 items-center underline underline-offset-4">
               仕組みの中身を見る
@@ -680,6 +686,17 @@ export default function PersonFlow() {
                 採点する（1枚）
               </a>
             </div>
+          )}
+          {link && (
+            <section aria-labelledby="try-window" className="mt-10 rounded-3xl border-2 border-wood bg-paper p-5 print:hidden">
+              <h2 id="try-window" className="text-lg font-bold">窓口の側も、試してみる（デモ）</h2>
+              <p className="mt-1 text-base leading-8">
+                いま作った手帳を、<strong>窓口になって</strong>開きます。窓口では、このリンクを開いて、ログインします。
+              </p>
+              <a href={new URL(link).pathname} className={buttonClass("quiet", "mt-3 w-full")}>
+                窓口として、この手帳を開く
+              </a>
+            </section>
           )}
           <div className="mt-12 border-t border-line pt-6 text-center">
             <p className="text-sm leading-7 text-muted">この手帳は、これで完成です。ちがう困りごとを書くときだけ、押してください。</p>

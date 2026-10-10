@@ -11,9 +11,10 @@ export async function POST(request: Request) {
     logEvent("rate_limited", { route: "sample" }, "WARNING");
     return Response.json({ error: "rate_limited" }, { status: 429 });
   }
+  const lang = (await request.json().catch(() => null))?.lang === "en" ? "en" : "ja";
   const owner = newOwnerToken();
   const windowToken = windowIdFor(owner);
-  const r = share(sampleCard(), windowToken);
+  const r = share(sampleCard(undefined, lang), windowToken);
   if (!r.ok) return Response.json({ error: r.reason }, { status: 500 });
   const h = { ...r.value, v: 2 as const };
   await store.put(h);

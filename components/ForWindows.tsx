@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconBack, IconCheck, IconPaper, IconPhone, IconShield } from "@/components/icons";
 import WindowsHero from "@/components/WindowsHero";
 import { Button, Notice, buttonClass } from "@/components/ui";
@@ -18,10 +18,10 @@ const KIND_LABEL: Record<(typeof ORG_KINDS)[number], string> = {
 };
 
 const RECEIVE_STEPS = [
-  { t: "画面か、紙を見る", d: "画面か紙を見るだけ。準備は要りません。" },
-  { t: "「合っていますか」と確かめる", d: "本人が確かめた言葉だけが、載っています。" },
-  { t: "コピーして、記録や用紙に写す", d: "項目ごと、または記録用にまとめて、コピーできます。" },
-  { t: "次の窓口へ、引き継ぐ", d: "窓口の画面で引き継ぎを記録し、リンクを次の窓口に渡せます。本人は、もう一度説明しなくて済みます。" },
+  { t: "画面か、紙を見る" },
+  { t: "「合っていますか」と、本人に確かめる" },
+  { t: "コピーして、記録や用紙に写す" },
+  { t: "次の窓口へ、引き継ぐ" },
 ];
 
 const POINTS = [
@@ -58,6 +58,13 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
     setState(j.error === "note_pii" ? "pii" : j.error === "code_format" ? "code" : "error");
   }
 
+  const [pilotOpen, setPilotOpen] = useState(false);
+  useEffect(() => {
+    // 「無料パイロットに申し込む」から来たときは、開いておく
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (window.location.hash === "#pilot") setPilotOpen(true);
+  }, []);
+
   const input = "mt-1.5 w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none";
 
   return (
@@ -88,19 +95,18 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
       <nav aria-label="このページの内容" className="mt-4 grid gap-3">
         <Link href="/window" className={buttonClass("quiet", "w-full whitespace-nowrap")}>手帳を受け取る（リンク・QR）</Link>
         <a href="#receive" className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
-        <a href="#pilot-h" className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
+        <a href="#pilot" onClick={() => setPilotOpen(true)} className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
       </nav>
 
       <section id="receive" className="mt-8 scroll-mt-6 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="receive-h">
         <h2 id="receive-h" className="text-2xl font-bold">手帳を受け取ったら</h2>
         <p className="mt-2 text-base leading-8 text-ink">本人が、画面か紙で見せます。次の順で、受け取れます。</p>
-        <ol className="mt-5 space-y-4">
+        <ol className="mt-4 space-y-3">
           {RECEIVE_STEPS.map((st, i) => (
-            <li key={st.t} className="flex items-start gap-4">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-wood text-lg font-bold text-paper" aria-hidden>{i + 1}</span>
+            <li key={st.t} className="flex items-center gap-4">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-wood text-base font-bold text-paper" aria-hidden>{i + 1}</span>
               <span>
                 <span className="block text-lg font-bold leading-8">{st.t}</span>
-                <span className="block text-base leading-8 text-muted">{st.d}</span>
               </span>
             </li>
           ))}
@@ -141,7 +147,17 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
         </Notice>
       </section>
 
-      <section className="mt-8 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="offer-h">
+      <details
+        id="pilot"
+        open={pilotOpen}
+        onToggle={(e) => setPilotOpen((e.currentTarget as HTMLDetailsElement).open)}
+        className="mt-8 rounded-3xl border-2 border-line bg-paper p-5 scroll-mt-6"
+      >
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-lg font-bold">
+          無料パイロットに、関心のある方へ
+          <span aria-hidden className="text-sm font-normal text-muted">{pilotOpen ? "閉じる" : "開く"}</span>
+        </summary>
+      <section className="mt-5 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="offer-h">
         <h2 id="offer-h" className="text-xl font-bold">{INVITE_OFFER.title}</h2>
         <p className="mt-2 text-base leading-8">招待コードがあれば、次の内容で参加できます。</p>
         <ul className="mt-3 space-y-2">
@@ -155,7 +171,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
         <p className="mt-3 text-sm leading-7 text-muted">{INVITE_OFFER.note}</p>
       </section>
 
-      <section className="mt-8" aria-labelledby="pilot-h">
+      <section className="mt-6" aria-labelledby="pilot-h">
         <h2 id="pilot-h" className="text-xl font-bold">無料のパイロットに、関心のある方へ</h2>
         <p className="mt-2 text-sm leading-7 text-muted">
           1拠点・数週間の、小さな試行からです。費用はかかりません。ご連絡先を、お残しください。
@@ -224,6 +240,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
           </form>
         )}
       </section>
+      </details>
       <nav className="mt-12 border-t border-line pt-6 text-center" aria-label="もどる">
         <Link href="/" className={buttonClass("quiet", "w-full")}>
           <IconBack className="h-5 w-5" />
