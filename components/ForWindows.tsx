@@ -94,10 +94,16 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
         </Link>
       </section>
 
-      <nav aria-label="このページの内容" className="mt-4 grid gap-3">
+      <nav aria-label="このページの内容" className="mt-4">
         <Link href="/window" className={buttonClass("quiet", "w-full whitespace-nowrap")}>手帳を受け取る（リンク・QR）</Link>
-        <a href="#receive" onClick={() => setReceiveOpen(true)} className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
-        <a href="#pilot" onClick={() => setPilotOpen(true)} className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
+        <p className="mt-2 flex flex-wrap justify-center gap-x-5 text-sm">
+          <a href="#receive" onClick={() => setReceiveOpen(true)} className="inline-flex min-h-11 items-center font-semibold text-wood-dark underline underline-offset-4">
+            受け取り方
+          </a>
+          <a href="#pilot" onClick={() => setPilotOpen(true)} className="inline-flex min-h-11 items-center font-semibold text-wood-dark underline underline-offset-4">
+            無料パイロットの申し込み
+          </a>
+        </p>
       </nav>
 
       <details
