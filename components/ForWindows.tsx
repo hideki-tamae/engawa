@@ -59,10 +59,12 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
   }
 
   const [pilotOpen, setPilotOpen] = useState(false);
+  const [receiveOpen, setReceiveOpen] = useState(false);
   useEffect(() => {
     // 「無料パイロットに申し込む」から来たときは、開いておく
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (window.location.hash === "#pilot") setPilotOpen(true);
+    if (window.location.hash === "#receive") setReceiveOpen(true);
   }, []);
 
   const input = "mt-1.5 w-full rounded-2xl border-2 border-line bg-white p-3.5 text-base focus:border-wood focus:outline-none";
@@ -94,13 +96,21 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
 
       <nav aria-label="このページの内容" className="mt-4 grid gap-3">
         <Link href="/window" className={buttonClass("quiet", "w-full whitespace-nowrap")}>手帳を受け取る（リンク・QR）</Link>
-        <a href="#receive" className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
+        <a href="#receive" onClick={() => setReceiveOpen(true)} className={buttonClass("quiet", "w-full")}>受け取り方を見る</a>
         <a href="#pilot" onClick={() => setPilotOpen(true)} className={buttonClass("quiet", "w-full")}>無料パイロットに申し込む</a>
       </nav>
 
-      <section id="receive" className="mt-8 scroll-mt-6 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="receive-h">
-        <h2 id="receive-h" className="text-2xl font-bold">手帳を受け取ったら</h2>
-        <p className="mt-2 text-base leading-8 text-ink">本人が、画面か紙で見せます。次の順で、受け取れます。</p>
+      <details
+        id="receive"
+        open={receiveOpen}
+        onToggle={(e) => setReceiveOpen((e.currentTarget as HTMLDetailsElement).open)}
+        className="mt-6 rounded-3xl border-2 border-wood bg-paper p-5 shadow-soft scroll-mt-6"
+      >
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-xl font-bold">
+          手帳を受け取ったら（4つの手順）
+          <span aria-hidden className="shrink-0 whitespace-nowrap text-sm font-normal text-muted">{receiveOpen ? "閉じる" : "開く"}</span>
+        </summary>
+        <p className="mt-4 text-base leading-8 text-ink">本人が、画面か紙で見せます。次の順で、受け取れます。</p>
         <ol className="mt-4 space-y-3">
           {RECEIVE_STEPS.map((st, i) => (
             <li key={st.t} className="flex items-center gap-4">
@@ -124,7 +134,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
           ログインの情報は、試用の窓口にだけお渡ししています。
           <Link href="/how" className="ml-1 underline underline-offset-4">仕組みを見る</Link>
         </p>
-      </section>
+      </details>
 
       <ul className="mt-6 space-y-3">
         {POINTS.map((p) => (
@@ -155,7 +165,7 @@ export default function ForWindows({ initialCode = "" }: { initialCode?: string 
       >
         <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-lg font-bold">
           無料パイロットに、関心のある方へ
-          <span aria-hidden className="text-sm font-normal text-muted">{pilotOpen ? "閉じる" : "開く"}</span>
+          <span aria-hidden className="shrink-0 whitespace-nowrap text-sm font-normal text-muted">{pilotOpen ? "閉じる" : "開く"}</span>
         </summary>
       <section className="mt-5 rounded-3xl border-2 border-wood bg-paper p-6 shadow-soft" aria-labelledby="offer-h">
         <h2 id="offer-h" className="text-xl font-bold">{INVITE_OFFER.title}</h2>
