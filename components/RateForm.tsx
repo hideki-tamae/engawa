@@ -69,7 +69,7 @@ export default function RateForm() {
         <ol className="mt-2 list-decimal space-y-1 pl-6 text-base leading-8">
           <li>「はじめる」から、手帳を1冊つくる</li>
           <li>「窓口に画面を見せる」を開いてみる</li>
-          <li>窓口のログイン画面（窓口A）で、読み返しと引き継ぎまで進めてみる</li>
+          <li>完成画面の「窓口として、この手帳を開く」を押し、窓口の側も見てみる（ログイン情報をお持ちの方のみ。なければ、1・2だけで、大丈夫です）</li>
         </ol>
         <p className="mt-2 text-sm leading-6 text-muted">本物の困りごとは、入れないでください。</p>
       </section>
@@ -173,12 +173,16 @@ export default function RateForm() {
         </div>
       )}
 
-      <div className="mt-8 print:hidden">
+      <div className="sticky bottom-0 z-20 -mx-5 mt-8 border-t border-line bg-paper/95 px-5 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 backdrop-blur print:hidden">
         <Button type="submit" className="w-full" disabled={!complete || state === "sending"}>
-          {state === "sending" ? "送っています…" : "送る"}
+          {state === "sending" ? "送っています…" : "この内容で、送信する"}
         </Button>
-        {!complete && <p className="mt-2 text-center text-sm text-muted">6つすべてに、点数をつけると、送れます。</p>}
-        {avg !== null && <p className="mt-2 text-center text-sm text-muted">平均 {avg.toFixed(1)}</p>}
+        {!complete && (
+          <p className="mt-2 text-center text-sm font-semibold leading-6 text-wood-dark" role="status">
+            あと {RATING_ITEMS.length - Object.keys(scores).length} 項目に、点数をつけると、送信できます。
+          </p>
+        )}
+        {avg !== null && <p className="mt-2 text-center text-sm text-muted">平均 {avg.toFixed(1)}（これで、送信できます）</p>}
       </div>
     </form>
   );
