@@ -32,3 +32,10 @@ gcloud run services update-traffic engawa --region asia-northeast1 --project eng
 ```bash
 gcloud run services update-traffic engawa --region asia-northeast1 --project engawa-care --to-revisions engawa-00070-2rc=100
 ```
+
+## v68（2026-10-12 夜）の内容と戻し方
+各ステップ（書く・質問×4・確認・見せ方）、完成、窓口の方へ、仕組みを見る、プライバシーの絵を、Aさんの水彩調（AI生成）の画像に差し替え。`public/steps/`。フッターに、AI生成の注記。
+- 1つ前（v67）：リビジョン `engawa-00071-fdl`（v68 は `engawa-00072-n94`）
+```bash
+gcloud run services update-traffic engawa --region asia-northeast1 --project engawa-care --to-revisions engawa-00071-fdl=100
+```

@@ -33,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer data-no-translate className="mt-auto flex flex-col items-center gap-2 px-4 pb-8 pt-10 print:hidden">
           <span aria-hidden className="h-px w-10 bg-wood/30" />
           <p className="text-[11px] tracking-[0.22em] text-muted/70">© 2026 Hideki Tamae. All rights reserved.</p>
+          <p className="text-[10px] tracking-[0.12em] text-muted/55">イラストは、AI で生成したイメージです。登場人物は架空です。</p>
         </footer>
         <Translator />
       </body>
