@@ -10,8 +10,8 @@ export function sampleCard(id = `sample-${Date.now().toString(36)}`, lang: "ja" 
     id,
     statement:
       lang === "en"
-        ? "I can't pay my rent, and I keep explaining the same thing at the window. (This is a fictional sample.)"
-        : "家賃が払えなくて、窓口で何度も同じ説明をしている。（これは、作り話のサンプルです）",
+        ? "I can't pay my rent, and keep explaining the same thing.\n(This is a fictional sample.)"
+        : "家賃が払えず、同じ説明を何度もしている。\n（作り話のサンプルです）",
     inputMode: "text",
     fields: {
       when: f("ここ数か月"),

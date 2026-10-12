@@ -480,6 +480,19 @@ export default function PersonFlow() {
               </li>
             ))}
           </ul>
+          <details className="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm leading-7">
+            <summary className="cursor-pointer select-none text-base font-semibold">あなたの情報は、どうなりますか？</summary>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-muted">
+              <li>手帳の本文は、30日で自動的に消えます。「取り下げ」を押すと、すぐ消えます。</li>
+              <li>名前や住所などの基本情報は、あなたの端末の中にだけ残ります。</li>
+              <li>窓口に見せる範囲は、あなたが選びます。リンクを知っている人は見られるので、渡す相手に、気をつけてください。</li>
+              <li>運営者は、技術的には、保存された手帳にアクセスできる立場にあります。ログには、本文を入れていません。</li>
+              <li>現時点で、実在の機関への提供や、提携はありません。</li>
+            </ul>
+            <p className="mt-3">
+              <Link href="/privacy" className="underline underline-offset-4">くわしくは、「個人情報の扱い」へ</Link>
+            </p>
+          </details>
           <div className="mt-6 rounded-2xl border-2 border-wood bg-paper p-4 text-center">
             <p className="text-base font-semibold">窓口・支援者の方は、こちら</p>
             <Link href="/for-windows" className={buttonClass("quiet", "mt-3 w-full")}>

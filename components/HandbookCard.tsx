@@ -86,7 +86,7 @@ export default function HandbookCard({
       <div className="space-y-5 px-6 py-6">
         <section>
           <p className={`${small} font-medium text-muted`}>本人の言葉</p>
-          <p data-no-translate className={`mt-1.5 ${body} text-ink`}>{statement}</p>
+          <p data-no-translate className={`mt-1.5 whitespace-pre-line ${body} text-ink`}>{statement}</p>
         </section>
         {present.map((k) => (
           <section key={k} className="border-t border-line pt-4">
