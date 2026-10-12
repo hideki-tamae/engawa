@@ -3,6 +3,9 @@
  * 左：窓口が変わるたびに、同じ説明を繰り返す。右：手帳を1回見せて、そのまま相談へ。
  * 絵は装飾ではなく説明そのもの。文章でも同じことを書く（スクリーンリーダー向け）。
  */
+/** 順に現れる。--d は、始まるまでの秒数。動きを減らす設定の人には、最初から全部を見せる。 */
+const step = (d: number) => ({ className: "hero-step", style: { "--d": `${d}s` } as React.CSSProperties });
+
 export default function Hero() {
   return (
     <figure>
@@ -18,7 +21,8 @@ export default function Hero() {
         {/* 左：いま */}
         <text x="28" y="40" fontSize="15" fontWeight="700" fill="#8a2f1d">いま</text>
         {[0, 1, 2].map((i) => (
-          <g key={i} transform={`translate(${28 + i * 98}, 58)`}>
+          <g key={i} {...step(0.3 + i * 1.1)}>
+          <g transform={`translate(${28 + i * 98}, 58)`}>
             <rect width="84" height="64" rx="12" fill="#fff" stroke="#7a5a2f" strokeOpacity=".35" strokeWidth="1.5" />
             <path d="M12 64 v-30 h60 v30" fill="none" />
             <rect x="12" y="14" width="60" height="9" rx="4.5" fill="#d9c9a8" />
@@ -34,11 +38,15 @@ export default function Hero() {
               {["1回目", "2回目", "3回目"][i]}
             </text>
           </g>
+          </g>
         ))}
-        <text x="28" y="262" fontSize="14" fill="#5b4a33" data-en="Many give up halfway.">うまく言えない人ほど、途中で諦めてしまう。</text>
+        <g {...step(3.6)}>
+          <text x="28" y="262" fontSize="14" fill="#5b4a33" data-en="Many give up halfway.">うまく言えない人ほど、途中で諦めてしまう。</text>
+        </g>
 
         {/* 右：Engawa */}
         <text x="352" y="40" fontSize="15" fontWeight="700" fill="#2f6b3a">Engawa</text>
+        <g {...step(4.6)}>
         <g transform="translate(380, 70)">
           <rect width="96" height="124" rx="12" fill="#7a5a2f" />
           <rect x="10" y="12" width="76" height="100" rx="7" fill="#fbf6ec" />
@@ -49,8 +57,12 @@ export default function Hero() {
           <circle cx="62" cy="96" r="12" fill="#e6f1e4" stroke="#2f6b3a" strokeWidth="2" transform="rotate(-8 62 96)" />
           <path d="M56 96 l4 4 l8 -9" fill="none" stroke="#2f6b3a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </g>
+        </g>
+        <g {...step(5.4)}>
         <path d="M486 132 h40" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" />
         <path d="M518 121 l13 11 l-13 11" fill="none" stroke="#7a5a2f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+        <g {...step(6.0)}>
         <g transform="translate(538, 92)">
           <rect width="82" height="82" rx="12" fill="#fff" stroke="#2f6b3a" strokeOpacity=".5" strokeWidth="1.5" />
           <rect x="12" y="12" width="58" height="9" rx="4.5" fill="#cfe3cb" />
@@ -58,7 +70,10 @@ export default function Hero() {
           <rect x="6" y="52" width="70" height="24" rx="12" fill="#e6f1e4" />
           <text x="41" y="68" textAnchor="middle" fontSize="11" fill="#2f6b3a" data-en="Talk as is">そのまま相談へ</text>
         </g>
-        <text x="352" y="262" fontSize="14" fill="#5b4a33">自分の言葉のまま、1回見せるだけ。</text>
+        </g>
+        <g {...step(6.8)}>
+          <text x="352" y="262" fontSize="14" fill="#5b4a33">自分の言葉のまま、1回見せるだけ。</text>
+        </g>
       </svg>
       <figcaption className="sr-only">窓口が変わるたびの繰り返しと、手帳を1回見せることの対比</figcaption>
     </figure>

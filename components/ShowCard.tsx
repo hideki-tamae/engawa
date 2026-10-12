@@ -62,6 +62,9 @@ export default function ShowCard({ token }: { token: string }) {
   return (
     <>
       <section className="mx-auto max-w-2xl px-4 py-6">
+        <p className="mb-4 text-center text-base leading-8 text-muted">
+          窓口の方へ：アプリの登録や準備は、要りません。この画面を、そのまま、お読みください。
+        </p>
         <HandbookCard statement={data.view.statement} fields={data.view.fields} large />
         <p className="mt-6 text-center text-base leading-8 text-muted">
           お手数ですが、この内容を読んでから、お話を聞いてください。

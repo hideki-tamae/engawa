@@ -30,6 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           本文へ移動
         </a>
         {children}
+        <footer data-no-translate className="mt-auto flex flex-col items-center gap-2 px-4 pb-8 pt-10 print:hidden">
+          <span aria-hidden className="h-px w-10 bg-wood/30" />
+          <p className="text-[11px] tracking-[0.22em] text-muted/70">© 2026 Hideki Tamae. All rights reserved.</p>
+        </footer>
         <Translator />
       </body>
     </html>

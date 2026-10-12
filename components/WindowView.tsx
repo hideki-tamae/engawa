@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FindWindows, { type Found } from "@/components/FindWindows";
 import WindowMark from "@/components/WindowMark";
-import HandbookCard from "@/components/HandbookCard";
+import HandbookCard, { asItems } from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
 import { IconBuilding, IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
 import { Button, Notice, buttonClass } from "@/components/ui";
@@ -149,7 +149,11 @@ export default function WindowView({ token }: { token: string }) {
       "",
       `本人の言葉：${data.view.statement}`,
     ];
-    for (const [k, f] of Object.entries(data.view.fields)) lines.push(`${LABEL[k]}：${f?.value}`);
+    for (const [k, f] of Object.entries(data.view.fields)) {
+      const items = k === "help" ? asItems(f?.value) : null;
+      if (items) lines.push(`${LABEL[k]}：`, ...items.map((it) => `・${it}`));
+      else lines.push(`${LABEL[k]}：${f?.value}`);
+    }
     if (profile) {
       lines.push("", "【本人が見せた基本情報】");
       for (const f of PROFILE_FIELDS) if (profile[f.key]) lines.push(`${f.label}：${profile[f.key]}`);

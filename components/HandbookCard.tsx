@@ -40,6 +40,13 @@ function isPreset(value: string | undefined): boolean {
   return value.split("、").every((v) => PRESETS.has(v.trim()));
 }
 
+/** 短い項目が2つ以上、「、」でつながっているときだけ、箇条書きにする（長い自分の言葉は、割らない）。 */
+export function asItems(value: string | undefined): string[] | null {
+  if (!value) return null;
+  const items = value.split("、").map((v) => v.trim()).filter(Boolean);
+  return items.length >= 2 && items.every((v) => v.length <= 20) ? items : null;
+}
+
 export default function HandbookCard({
   statement,
   fields,
@@ -91,7 +98,18 @@ export default function HandbookCard({
         {present.map((k) => (
           <section key={k} className="border-t border-line pt-4">
             <p className={`${small} font-medium text-muted`}>{LABEL[k]}</p>
-            <p {...(isPreset(fields[k]?.value) ? {} : { "data-no-translate": true })} className={`mt-1 ${body} text-ink`}>{fields[k]?.value}</p>
+            {k === "help" && asItems(fields[k]?.value) ? (
+              <ul {...(isPreset(fields[k]?.value) ? {} : { "data-no-translate": true })} className={`mt-1 space-y-1 ${body} text-ink`}>
+                {asItems(fields[k]?.value)!.map((it) => (
+                  <li key={it} className="flex gap-2">
+                    <span aria-hidden>・</span>
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p {...(isPreset(fields[k]?.value) ? {} : { "data-no-translate": true })} className={`mt-1 ${body} text-ink`}>{fields[k]?.value}</p>
+            )}
           </section>
         ))}
       </div>
