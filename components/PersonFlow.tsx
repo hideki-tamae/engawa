@@ -30,9 +30,8 @@ import { SAFETY_OPTION, WHAT_MORE } from "@/lib/suggestions";
 import FindWindows from "@/components/FindWindows";
 import HandbookCard from "@/components/HandbookCard";
 import { Guide, Mark } from "@/components/Mark";
-import Hero from "@/components/Hero";
+import StoryHero from "@/components/StoryHero";
 import Qr from "@/components/Qr";
-import Veranda from "@/components/Veranda";
 import {
   IconArrow,
   IconBack,
@@ -419,7 +418,7 @@ export default function PersonFlow() {
       {trial && <TrialBanner />}
       <div className="mx-auto w-full max-w-xl px-5 pb-16 pt-6">
         <div className="anim-fade-up">
-          <Veranda className="h-auto w-full rounded-3xl shadow-soft" />
+          <img src="/story/veranda.jpg" alt="夕日の縁側。朱印のついた手帳と、湯気の立つお茶" width={1200} height={675} className="h-auto w-full rounded-3xl shadow-soft" />
           <h1 className="mt-8 text-[2.6rem] font-bold leading-tight tracking-tight text-ink">
             Engawa
             <span className="ml-2 text-2xl font-semibold text-wood">縁側</span>
@@ -433,7 +432,7 @@ export default function PersonFlow() {
         </div>
 
         <div className="anim-fade-up mt-8 [animation-delay:120ms]">
-          <Hero />
+          <StoryHero />
         </div>
 
         <div className="anim-fade-up mt-8 [animation-delay:200ms]">
