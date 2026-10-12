@@ -109,7 +109,7 @@ export const RATING_ITEMS = [
   { key: "fit", label: "困っている人への合い方", low: "使いにくそう", high: "安心して使えそう" },
 ] as const;
 export type RatingKey = (typeof RATING_ITEMS)[number]["key"];
-export const ROLES = ["support", "person", "developer", "other"] as const;
+export const ROLES = ["support", "medical", "business", "person", "developer", "other"] as const;
 
 export interface RatingDoc {
   scores: Record<RatingKey, number>;

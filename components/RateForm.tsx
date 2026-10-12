@@ -7,7 +7,9 @@ import { Button, Notice } from "@/components/ui";
 import { RATING_ITEMS, type RatingKey } from "@/lib/trial";
 
 const ROLE_OPTIONS = [
-  { v: "support", t: "相談を受ける仕事（支援職など）" },
+  { v: "support", t: "相談を受ける仕事（社会福祉士・精神保健福祉士・臨床心理士などの支援職）" },
+  { v: "medical", t: "医療の仕事（医師・看護師・歯科医師など）" },
+  { v: "business", t: "経営・事業の仕事" },
   { v: "person", t: "相談する側の経験がある" },
   { v: "developer", t: "開発・デザインの仕事" },
   { v: "other", t: "どれでもない" },

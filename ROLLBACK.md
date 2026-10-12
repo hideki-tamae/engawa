@@ -42,3 +42,6 @@ gcloud run services update-traffic engawa --region asia-northeast1 --project eng
 
 ## v69（2026-10-12 夜）
 フッターの「イラストは、AI で生成したイメージです」を削除（田前さんの指示）。1つ前（v68）：リビジョン `engawa-00072-n94`。
+
+## v70（2026-10-12 夜）
+採点フォーム `/rate` の「あなたは」に、「医療の仕事」「経営・事業の仕事」を追加（専門家へのフィードバック依頼のため）。1つ前（v69）：リビジョン `engawa-00073-zj6`。
