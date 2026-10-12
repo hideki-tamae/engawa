@@ -39,3 +39,6 @@ gcloud run services update-traffic engawa --region asia-northeast1 --project eng
 ```bash
 gcloud run services update-traffic engawa --region asia-northeast1 --project engawa-care --to-revisions engawa-00071-fdl=100
 ```
+
+## v69（2026-10-12 夜）
+フッターの「イラストは、AI で生成したイメージです」を削除（田前さんの指示）。1つ前（v68）：リビジョン `engawa-00072-n94`。
