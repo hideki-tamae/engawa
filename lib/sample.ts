@@ -10,8 +10,8 @@ export function sampleCard(id = `sample-${Date.now().toString(36)}`, lang: "ja" 
     id,
     statement:
       lang === "en"
-        ? "A family member is unwell, and I don't know where to start.\n(This is a fictional sample.)"
-        : "家族の具合が悪く、何から話せばいいか分からない。\n（作り話のサンプルです）",
+        ? "A family member is unwell, and I can't find the words.\n(This is a fictional sample.)"
+        : "家族の具合が悪くて、言葉が出ない。\n（作り話のサンプルです）",
     inputMode: "text",
     fields: {
       when: f("ここ数か月"),

@@ -915,7 +915,7 @@ export default function PersonFlow() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={6}
-            placeholder="たとえば「家族の具合が悪くて、何から話せばいいか分からない」"
+            placeholder="たとえば「家族の具合が悪くて、言葉が出ない」"
             className="mt-5 w-full resize-none rounded-3xl border-2 border-line bg-white p-5 text-xl leading-9 text-ink shadow-soft placeholder:text-muted/50 focus:border-wood focus:outline-none"
           />
 

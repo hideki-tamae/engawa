@@ -48,3 +48,6 @@ gcloud run services update-traffic engawa --region asia-northeast1 --project eng
 
 ## v71（2026-10-13）
 リビジョン `engawa-00075-bhz`。ログインに絵・1文を1行・パスワード表示切替。戻し先は v70 = engawa-00074-9ns。
+
+## v73（2026-10-13）
+リビジョンは gcloud run revisions list で確認。戻し先は v72 = engawa-00076-r28。
