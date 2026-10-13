@@ -9,7 +9,7 @@ import FindWindows, { type Found } from "@/components/FindWindows";
 import WindowMark from "@/components/WindowMark";
 import HandbookCard, { asItems } from "@/components/HandbookCard";
 import Timeline from "@/components/Timeline";
-import { IconBuilding, IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
+import { IconCheck, IconCopy, IconEye, IconLock, IconSend, IconShield } from "@/components/icons";
 import { Button, Notice, buttonClass } from "@/components/ui";
 import { FINDER_HELPS, FINDER_WHATS, termsFrom } from "@/lib/finder";
 import { PROFILE_FIELDS, type Profile, profileFromFragment } from "@/lib/profile";
@@ -71,6 +71,7 @@ export default function WindowView({ token }: { token: string }) {
   const [needLogin, setNeedLogin] = useState(false);
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -166,13 +167,18 @@ export default function WindowView({ token }: { token: string }) {
     return (
       <div className="mx-auto w-full max-w-md px-5 py-10">
         <form onSubmit={login} className="anim-fade-up">
-          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-wood text-paper shadow-soft">
-            <IconBuilding className="h-8 w-8" />
-          </span>
-          <h1 className="mt-5 text-3xl font-bold">窓口のログイン</h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/steps/login.jpg"
+            alt=""
+            width={1200}
+            height={896}
+            className="w-full rounded-3xl border border-line shadow-soft"
+          />
+          <h1 className="mt-6 text-3xl font-bold">窓口のログイン</h1>
           <div className="mt-4">
             <Notice tone="info">
-              <p className="font-semibold">この画面は、相談を受ける側（窓口・支援者）のものです。</p>
+              <p className="font-semibold">この画面は、窓口・支援者のものです。</p>
               <p className="mt-1 text-sm leading-7 text-muted">
                 困っている本人が手帳を作ると、窓口に見せるためのリンクができます。そのリンクを窓口が開くと、ここに来ます。本人の画面ではありません。
               </p>
@@ -199,14 +205,24 @@ export default function WindowView({ token }: { token: string }) {
           <label className="mt-5 block text-base font-semibold" htmlFor="p">
             パスワード
           </label>
-          <input
-            id="p"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            className="mt-1.5 w-full rounded-2xl border-2 border-line bg-white p-4 text-lg focus:border-wood focus:outline-none"
-          />
+          <div className="relative mt-1.5">
+            <input
+              id="p"
+              type={showPw ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              className="w-full rounded-2xl border-2 border-line bg-white p-4 pr-24 text-lg focus:border-wood focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-pressed={showPw}
+              className="absolute right-2 top-1/2 inline-flex min-h-11 -translate-y-1/2 items-center rounded-xl px-3 text-sm font-semibold text-wood-dark underline underline-offset-4"
+            >
+              {showPw ? "隠す" : "表示する"}
+            </button>
+          </div>
           {loginError && (
             <div className="mt-4">
               <Notice tone="warn" role="alert">

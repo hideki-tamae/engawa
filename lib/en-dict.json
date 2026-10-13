@@ -52,7 +52,7 @@
 "ここにリンクを貼る": "Paste link here",
 "ここ数か月": "In the past few months",
 "このページの内容": "Page content",
-"この画面は、相談を受ける側（窓口・支援者）のものです。": "This screen is for the service window (staff/supporter).",
+"この画面は、窓口・支援者のものです。": "This screen is for the service window (staff/supporter).",
 "これは、作り話の": "This is a fictional",
 "ご利用にあたり、現在のシステム仕様として、以下の点にご留意ください。": "Please note the following system specifications when using Engawa.",
 "ご担当者名（任意）": "Contact person (optional)",
@@ -321,5 +321,7 @@
 "音声データ": "Audio data",
 "音声入力を利用した場合、テキスト化のために、Google の音声認識 API へ送信されます。音声データ自体は、保存されません。": "When using voice input, your speech is sent to Google's speech recognition API for transcription. The audio data itself is not stored.",
 "項目ごとのコピーと、紙（日時・照合コード付き）で、窓口の様式に写せます。": "Copy each item, or use a printed copy (with date and verification code) to transfer to service window forms.",
-"飛ばす": "Skip"
+"飛ばす": "Skip",
+"表示する": "Show",
+"隠す": "Hide"
 }
