@@ -19,7 +19,7 @@ export interface Step {
   checks: Check[];
 }
 
-const FICTION = "家賃が払えなくて、役所で何度も同じ説明をしています。母が入院していて、手続きも分かりません。";
+const FICTION = "家族の具合が悪くて、役所で何度も同じ説明をしています。何から話せばいいか分かりません。";
 
 export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const steps: Step[] = [];
@@ -53,7 +53,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
       field: "what",
       question: "どんなことで困っていますか？",
       suggestions: [
-        { text: "家賃が払えなくて", quote: "家賃が払えなくて" },
+        { text: "家族の具合が悪くて", quote: "家族の具合が悪くて" },
         { text: "うつ病", quote: "うつ病" },
       ],
     });
@@ -125,7 +125,7 @@ export async function runScenario(generate: Generate | null): Promise<Step[]> {
   const intact = verifyChain(log);
   const tampered = log.map((e, i) => (i === 1 ? { ...e, actor: "system" as const } : e));
   const broken = verifyChain(tampered);
-  const hasBody = JSON.stringify(log).includes("家賃");
+  const hasBody = JSON.stringify(log).includes("家族の具合");
   steps.push({
     title: "5. 経過の記録と、改ざんの検知",
     why: "誰がいつ何をしたかを記録。書き換えは検知できる。",

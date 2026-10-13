@@ -249,6 +249,11 @@ export default function PersonFlow() {
   const chunks = useRef<Blob[]>([]);
   const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [transcribing, setTranscribing] = useState(false);
+  const [micLevel, setMicLevel] = useState(0);
+  // 声が入らなかった理由の種類だけを、サーバーに知らせる（内容・声は送らない）。原因をつかんで、直すため
+  function reportVoice(reason: string) {
+    void fetch("/api/voice-report", { method: "POST", body: JSON.stringify({ reason }) }).catch(() => {});
+  }
 
   function stopRecording() {
     const mr = recorder.current;
@@ -289,24 +294,70 @@ export default function PersonFlow() {
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
+      // ブラウザごとに録れる形式が違う（Chrome は webm、Safari・iPhone は mp4）。使える形式を、先に選ぶ
+      const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"].find((m) =>
+        typeof MediaRecorder.isTypeSupported === "function" ? MediaRecorder.isTypeSupported(m) : false,
+      );
+      const mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       chunks.current = [];
       mr.ondataavailable = (e) => {
         if (e.data.size > 0) chunks.current.push(e.data);
       };
+      // 音が入っているかを、画面で見せる（マイクの許可はあるのに、音が入らない端末を、すぐ見分けるため）
+      let peak = 0;
+      let meterTimer: ReturnType<typeof setInterval> | null = null;
+      let meterCtx: AudioContext | null = null;
+      try {
+        const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (AC) {
+          meterCtx = new AC();
+          void meterCtx.resume();
+          const an = meterCtx.createAnalyser();
+          an.fftSize = 512;
+          meterCtx.createMediaStreamSource(stream).connect(an);
+          const buf = new Uint8Array(an.fftSize);
+          meterTimer = setInterval(() => {
+            an.getByteTimeDomainData(buf);
+            let m = 0;
+            for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128) / 128);
+            peak = Math.max(peak, m);
+            setMicLevel(m);
+          }, 100);
+        }
+      } catch {
+        /* 音量表示が出せなくても、録音は続ける */
+      }
       mr.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         if (stopTimer.current) clearTimeout(stopTimer.current);
+        if (meterTimer) clearInterval(meterTimer);
+        if (meterCtx) void meterCtx.close();
+        setMicLevel(0);
         setListening(false);
         const blob = new Blob(chunks.current, { type: mr.mimeType });
         chunks.current = [];
-        if (blob.size === 0) return;
+        if (blob.size === 0) {
+          reportVoice("no_data");
+          setVoiceError("録音が空でした。マイクの許可と、ほかのアプリでマイクが使われていないかを確かめて、もう一度お試しください。文字で書くこともできます。");
+          return;
+        }
+        if (meterCtx && peak < 0.02) {
+          reportVoice("silent");
+          setVoiceError("ほとんど音が入っていませんでした。マイクのミュートや、Bluetooth のイヤホンの接続を確かめて、もう一度お試しください。文字で書くこともできます。");
+          return;
+        }
         setTranscribing(true);
         try {
-          const { base64 } = await blobTo16kPcmBase64(blob);
+          const { base64 } = await blobTo16kPcmBase64(blob).catch((e) => {
+            reportVoice("decode_fail");
+            throw e;
+          });
           const r = await fetch("/api/stt", { method: "POST", body: JSON.stringify({ audio: base64 }) });
           const j = (await r.json().catch(() => ({}))) as { text?: string; error?: string };
-          if (!r.ok) throw new Error(j.error ?? "stt");
+          if (!r.ok) {
+            reportVoice("stt_fail");
+            throw new Error(j.error ?? "stt");
+          }
           if (j.text) setText((prev) => prev + j.text);
           else setVoiceError("うまく聞き取れませんでした。もう一度、ゆっくり話してみてください。");
         } catch {
@@ -318,12 +369,13 @@ export default function PersonFlow() {
       recorder.current = mr;
       setVoiceUsed(true);
       setListening(true);
-      mr.start();
+      mr.start(250);
       stopTimer.current = setTimeout(() => {
         if (mr.state !== "inactive") mr.stop();
       }, STT_MAX_SECONDS * 1000);
     } catch (err) {
       const name = err instanceof DOMException ? err.name : "";
+      reportVoice(name === "NotAllowedError" || name === "SecurityError" ? "permission" : name === "NotFoundError" ? "no_mic" : "mic_error");
       if (inApp) {
         setVoiceError("このアプリの中では、マイクが使えないようです。下の「このページの URL をコピー」を押して、Safari や Chrome で開き直してください。文字で書くこともできます。");
       } else if (name === "NotAllowedError" || name === "SecurityError") {
@@ -863,7 +915,7 @@ export default function PersonFlow() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={6}
-            placeholder="たとえば「家賃が払えなくて、窓口で何度も同じ説明をしている」"
+            placeholder="たとえば「家族の具合が悪くて、何から話せばいいか分からない」"
             className="mt-5 w-full resize-none rounded-3xl border-2 border-line bg-white p-5 text-xl leading-9 text-ink shadow-soft placeholder:text-muted/50 focus:border-wood focus:outline-none"
           />
 
@@ -889,6 +941,9 @@ export default function PersonFlow() {
                     ))}
                   </span>
                   <span className="text-base font-semibold text-warn">聞いています。もう一度押すと止まります。</span>
+                  <span className="ml-1 block h-2 w-16 overflow-hidden rounded-full bg-warn/20" role="img" aria-label={micLevel > 0.02 ? "マイクに音が入っています" : "マイクに音が入っていません"}>
+                    <span className="block h-full rounded-full bg-warn transition-[width] duration-100" style={{ width: `${Math.min(100, Math.round(micLevel * 400))}%` }} />
+                  </span>
                 </div>
               ) : transcribing ? (
                 <p className="text-base font-semibold leading-7 text-wood-dark" role="status" aria-live="polite">

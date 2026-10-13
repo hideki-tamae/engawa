@@ -10,13 +10,13 @@ export function sampleCard(id = `sample-${Date.now().toString(36)}`, lang: "ja" 
     id,
     statement:
       lang === "en"
-        ? "I can't pay my rent, and keep explaining the same thing.\n(This is a fictional sample.)"
-        : "家賃が払えず、同じ説明を何度もしている。\n（作り話のサンプルです）",
+        ? "A family member is unwell, and I don't know where to start.\n(This is a fictional sample.)"
+        : "家族の具合が悪く、何から話せばいいか分からない。\n（作り話のサンプルです）",
     inputMode: "text",
     fields: {
       when: f("ここ数か月"),
       where: f("役所・窓口"),
-      what: f("お金のこと"),
+      what: f("家族のこと"),
       help: f("話を聞いてほしい"),
     },
     shareScope: ["what", "help", "when"],
