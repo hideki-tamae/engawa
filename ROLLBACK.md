@@ -45,3 +45,6 @@ gcloud run services update-traffic engawa --region asia-northeast1 --project eng
 
 ## v70（2026-10-12 夜）
 採点フォーム `/rate` の「あなたは」に、「医療の仕事」「経営・事業の仕事」を追加（専門家へのフィードバック依頼のため）。1つ前（v69）：リビジョン `engawa-00073-zj6`。
+
+## v71（2026-10-13）
+リビジョン `engawa-00075-bhz`。ログインに絵・1文を1行・パスワード表示切替。戻し先は v70 = engawa-00074-9ns。
