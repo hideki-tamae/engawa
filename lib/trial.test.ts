@@ -47,4 +47,21 @@ describe("採点の検証", () => {
     void _fit;
     expect(validateRating({ scores: missing }).ok).toBe(false);
   });
+  it("fit は「判断できない」を選べる（点数は入れず、fitUnknown を立てる）", () => {
+    const r = validateRating({ scores: { ...good, fit: "unknown" } });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.fitUnknown).toBe(true);
+      expect(r.value.scores.fit).toBeUndefined();
+    }
+    expect(validateRating({ scores: { ...good, ease: "unknown" } }).ok).toBe(false);
+  });
+  it("窓口側の受け入れは、医療・支援・経営の立場の人だけ記録する", () => {
+    const ok = validateRating({ scores: good, role: "medical", accept: "conditional" });
+    expect(ok.ok && ok.value.accept).toBe("conditional");
+    const person = validateRating({ scores: good, role: "person", accept: "yes" });
+    expect(person.ok && person.value.accept).toBeUndefined();
+    const bad = validateRating({ scores: good, role: "support", accept: "maybe" });
+    expect(bad.ok && bad.value.accept).toBeUndefined();
+  });
 });

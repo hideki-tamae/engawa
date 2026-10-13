@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { IconBack, IconCheck } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
-import { RATING_ITEMS, type RatingKey } from "@/lib/trial";
+import { ACCEPT_ROLES, RATING_ITEMS, type RatingKey } from "@/lib/trial";
 
 const ROLE_OPTIONS = [
   { v: "support", t: "相談を受ける仕事（社会福祉士・精神保健福祉士・臨床心理士などの支援職）" },
@@ -16,14 +16,17 @@ const ROLE_OPTIONS = [
 ];
 
 export default function RateForm() {
-  const [scores, setScores] = useState<Partial<Record<RatingKey, number>>>({});
+  const [scores, setScores] = useState<Partial<Record<RatingKey, number | "unknown">>>({});
+  const [accept, setAccept] = useState("");
   const [role, setRole] = useState("");
   const [best, setBest] = useState("");
   const [worst, setWorst] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error" | "pii">("idle");
 
   const complete = RATING_ITEMS.every((i) => scores[i.key]);
-  const avg = complete ? RATING_ITEMS.reduce((n, i) => n + (scores[i.key] ?? 0), 0) / RATING_ITEMS.length : null;
+  const avg = complete ? RATING_ITEMS.reduce((n, i) => n + (Number(scores[i.key]) || 0), 0) / RATING_ITEMS.filter((i) => scores[i.key] !== "unknown").length : null;
+
+  const showAccept = (ACCEPT_ROLES as readonly string[]).includes(role);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +34,7 @@ export default function RateForm() {
     setState("sending");
     const r = await fetch("/api/ratings", {
       method: "POST",
-      body: JSON.stringify({ scores, role: role || undefined, best, worst }),
+      body: JSON.stringify({ scores, role: role || undefined, accept: showAccept ? accept || undefined : undefined, best, worst }),
     }).catch(() => null);
     if (r?.ok) setState("done");
     else if (r?.status === 422 && (await r.json().catch(() => ({}))).error === "pii") setState("pii");
@@ -105,6 +108,23 @@ export default function RateForm() {
                 );
               })}
             </div>
+            {it.key === "fit" && (
+              <label
+                className={`mt-2 flex min-h-11 cursor-pointer items-center justify-center rounded-2xl border-2 px-4 text-base font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-wood ${
+                  scores.fit === "unknown" ? "border-wood bg-wood text-paper" : "border-line bg-paper hover:border-wood/60"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="fit"
+                  value="unknown"
+                  checked={scores.fit === "unknown"}
+                  onChange={() => setScores((s) => ({ ...s, fit: "unknown" }))}
+                  className="sr-only"
+                />
+                判断できない（相手の窓口しだい、など）
+              </label>
+            )}
             <p className="mt-2 flex justify-between gap-4 text-xs leading-5 text-muted">
               <span>1：{it.low}</span>
               <span className="text-right">5：{it.high}</span>
@@ -158,6 +178,38 @@ export default function RateForm() {
             ))}
           </select>
         </div>
+        {showAccept && (
+          <fieldset>
+            <legend className="text-base font-bold">
+              あなたの職場なら、本人がこの手帳を見せたとき、受け取れそうですか（任意）
+            </legend>
+            <div className="mt-2 grid gap-2">
+              {[
+                { v: "yes", t: "はい、受け取れそう" },
+                { v: "conditional", t: "条件つきなら（例：紙・PDFで、など）" },
+                { v: "hard", t: "難しそう" },
+                { v: "unknown", t: "わからない" },
+              ].map((o) => (
+                <label
+                  key={o.v}
+                  className={`flex min-h-11 cursor-pointer items-center rounded-2xl border-2 px-4 text-base has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-wood ${
+                    accept === o.v ? "border-wood bg-wood text-paper" : "border-line bg-paper hover:border-wood/60"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="accept"
+                    value={o.v}
+                    checked={accept === o.v}
+                    onChange={() => setAccept(o.v)}
+                    className="sr-only"
+                  />
+                  {o.t}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
       </section>
 
       {state === "pii" && (

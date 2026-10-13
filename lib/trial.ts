@@ -111,8 +111,15 @@ export const RATING_ITEMS = [
 export type RatingKey = (typeof RATING_ITEMS)[number]["key"];
 export const ROLES = ["support", "medical", "business", "person", "developer", "other"] as const;
 
+/** 窓口側の受け入れ（立場が、医療・支援・経営の人にだけ聞く） */
+export const ACCEPTS = ["yes", "conditional", "hard", "unknown"] as const;
+export const ACCEPT_ROLES = ["support", "medical", "business"] as const;
+
 export interface RatingDoc {
-  scores: Record<RatingKey, number>;
+  /** fit は、「判断できない」のとき、入らない（fitUnknown が true） */
+  scores: Record<Exclude<RatingKey, "fit">, number> & { fit?: number };
+  fitUnknown?: boolean;
+  accept?: (typeof ACCEPTS)[number];
   role?: (typeof ROLES)[number];
   best?: string;
   worst?: string;
@@ -124,14 +131,27 @@ export function validateRating(input: unknown): { ok: true; value: Omit<RatingDo
   const o = input as Record<string, unknown>;
   const sc = o.scores as Record<string, unknown> | undefined;
   if (!sc || typeof sc !== "object") return { ok: false };
-  const scores = {} as Record<RatingKey, number>;
+  const scores = {} as RatingDoc["scores"];
+  let fitUnknown = false;
   for (const it of RATING_ITEMS) {
     const v = sc[it.key];
+    if (it.key === "fit" && v === "unknown") {
+      fitUnknown = true;
+      continue;
+    }
     if (typeof v !== "number" || !Number.isInteger(v) || v < 1 || v > 5) return { ok: false };
-    scores[it.key] = v;
+    (scores as Record<string, number>)[it.key] = v;
   }
   const value: Omit<RatingDoc, "at"> = { scores };
+  if (fitUnknown) value.fitUnknown = true;
   if (typeof o.role === "string" && (ROLES as readonly string[]).includes(o.role)) value.role = o.role as (typeof ROLES)[number];
+  if (
+    typeof o.accept === "string" &&
+    (ACCEPTS as readonly string[]).includes(o.accept) &&
+    value.role &&
+    (ACCEPT_ROLES as readonly string[]).includes(value.role)
+  )
+    value.accept = o.accept as (typeof ACCEPTS)[number];
   for (const k of ["best", "worst"] as const) {
     const t = o[k];
     if (typeof t === "string" && t.trim()) {
